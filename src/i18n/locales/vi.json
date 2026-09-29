@@ -1,0 +1,317 @@
+{
+  "app": {
+    "name": "Mèo Đen Convert",
+    "tagline": "Đổi ảnh & tạo QR ngay trên máy bạn — không upload, không đăng nhập."
+  },
+  "nav": {
+    "convert": "Chuyển ảnh",
+    "qr": "Mã QR"
+  },
+  "theme": {
+    "light": "Giao diện sáng",
+    "dark": "Giao diện tối",
+    "system": "Theo hệ thống",
+    "toggle": "Đổi giao diện (hiện tại: {{mode}})"
+  },
+  "lang": {
+    "toggle": "Switch to English"
+  },
+  "converter": {
+    "title": "Chuyển đổi định dạng ảnh",
+    "subtitle": "HEIC, JPG, PNG, WebP, AVIF, GIF, BMP, TIFF, ICO, SVG… ảnh iPhone cũng cân tuốt, kéo thả vào là xong.",
+    "dropTitle": "Thả ảnh vào đây",
+    "dropActive": "Thả ra đi, mèo đỡ cho!",
+    "dropHint": "hoặc bấm để chọn file",
+    "pasteHint": "Mẹo: dán ảnh trực tiếp bằng Ctrl/⌘ + V",
+    "settings": {
+      "format": "Định dạng xuất",
+      "quality": "Chất lượng",
+      "qualityHint": "80–90 là cân bằng đẹp giữa nét và nhẹ.",
+      "lossless": "PNG là định dạng không mất dữ liệu — giữ nguyên chất lượng.",
+      "background": "Màu nền thay cho vùng trong suốt",
+      "backgroundHint": "JPG không hỗ trợ nền trong suốt nên sẽ được tô bằng màu này.",
+      "lossless_gif": "GIF giảm về tối đa 256 màu — không có thanh chất lượng.",
+      "lossless_bmp": "BMP lưu nguyên điểm ảnh, không nén.",
+      "lossless_tiff": "TIFF lưu nguyên điểm ảnh, không nén.",
+      "lossless_ico": "Mỗi cỡ icon được lưu dạng PNG không mất dữ liệu."
+    },
+    "formatHints": {
+      "jpeg": "Nhẹ, hợp với ảnh chụp.",
+      "png": "Giữ nét tuyệt đối và nền trong suốt.",
+      "webp": "Nhẹ, vẫn giữ được nền trong suốt.",
+      "avif": "Nhẹ nhất hiện nay, giữ trong suốt — mã hoá hơi lâu với ảnh lớn.",
+      "gif": "Tối đa 256 màu, trong suốt dạng bật/tắt. Hợp với hình đơn giản.",
+      "bmp": "Không nén, không trong suốt — file khá nặng.",
+      "tiff": "Không nén, giữ trong suốt — dùng cho in ấn/lưu trữ, file rất nặng.",
+      "ico": "Icon Windows/favicon: gộp sẵn các cỡ 16–256px, ảnh chữ nhật sẽ được đặt vào khung vuông."
+    },
+    "actions": {
+      "convertCount_other": "Chuyển đổi {{count}} ảnh",
+      "converting": "Đang chuyển…",
+      "allDone": "Đã chuyển xong",
+      "clear": "Xoá hết",
+      "download": "Tải về",
+      "retry": "Thử lại",
+      "remove": "Bỏ ảnh này"
+    },
+    "summary": {
+      "progress": "{{done}}/{{total}} ảnh xong",
+      "saved": "tiết kiệm {{size}}",
+      "grew": "nặng thêm {{size}}"
+    },
+    "status": {
+      "queued": "Chờ chuyển",
+      "processing": "Đang xử lý…",
+      "stale": "Cài đặt đã đổi — bấm Chuyển đổi để làm lại"
+    },
+    "errors": {
+      "unsupported": "Chưa hỗ trợ định dạng {{format}}",
+      "decode": "Không đọc được ảnh (file hỏng hoặc trình duyệt không hỗ trợ)",
+      "encode": "Lỗi khi mã hoá ảnh"
+    },
+    "resize": {
+      "title": "Đổi kích thước",
+      "none": "Giữ nguyên",
+      "max": "Cạnh dài tối đa",
+      "percent": "Theo %",
+      "maxLabel": "Cạnh dài tối đa (px)",
+      "hint_none": "Giữ nguyên kích thước gốc.",
+      "hint_max": "Thu nhỏ để cạnh dài nhất không vượt quá số này — ảnh nhỏ hơn giữ nguyên, không phóng to.",
+      "hint_percent": "Thu nhỏ theo tỉ lệ phần trăm, giữ nguyên tỉ lệ khung hình."
+    },
+    "zip": {
+      "button_other": "Tải tất cả (.zip, {{count}} ảnh)",
+      "done_other": "Gói {{count}} ảnh vào một file zip rồi nè!"
+    },
+    "notes": {
+      "gifFirstFrame": "GIF động: chỉ lấy khung hình đầu tiên."
+    }
+  },
+  "qr": {
+    "title": "Tạo & tuỳ biến mã QR",
+    "subtitle": "Link, WiFi, danh thiếp, SMS… đổi màu, kiểu chấm, chèn logo — tất cả ngay trên máy bạn.",
+    "kinds": {
+      "url": "Link",
+      "text": "Văn bản",
+      "wifi": "WiFi",
+      "vcard": "Danh thiếp",
+      "email": "Email",
+      "sms": "SMS",
+      "phone": "Điện thoại",
+      "geo": "Vị trí",
+      "event": "Sự kiện"
+    },
+    "sections": {
+      "content": "Nội dung",
+      "presets": "Mẫu có sẵn",
+      "dots": "Chấm",
+      "corners": "Góc định vị",
+      "background": "Nền",
+      "logo": "Logo",
+      "advanced": "Nâng cao"
+    },
+    "fields": {
+      "url": {
+        "url": "Đường link"
+      },
+      "text": {
+        "text": "Nội dung",
+        "textPlaceholder": "Gõ gì cũng được…"
+      },
+      "wifi": {
+        "ssid": "Tên WiFi (SSID)",
+        "password": "Mật khẩu",
+        "security": "Bảo mật",
+        "none": "Không mật khẩu",
+        "hidden": "Mạng ẩn"
+      },
+      "vcard": {
+        "firstName": "Tên",
+        "lastName": "Họ",
+        "org": "Công ty",
+        "title": "Chức danh",
+        "phone": "Điện thoại",
+        "email": "Email",
+        "url": "Website",
+        "address": "Địa chỉ",
+        "note": "Ghi chú"
+      },
+      "email": {
+        "to": "Gửi tới",
+        "subject": "Tiêu đề",
+        "body": "Nội dung"
+      },
+      "sms": {
+        "phone": "Số điện thoại",
+        "message": "Tin nhắn"
+      },
+      "phone": {
+        "phone": "Số điện thoại"
+      },
+      "geo": {
+        "lat": "Vĩ độ",
+        "lng": "Kinh độ",
+        "label": "Tên địa điểm (tuỳ chọn)",
+        "locate": "Lấy vị trí hiện tại",
+        "locateError": "Không lấy được vị trí — kiểm tra quyền truy cập vị trí nhé."
+      },
+      "event": {
+        "title": "Tên sự kiện",
+        "location": "Địa điểm",
+        "start": "Bắt đầu",
+        "end": "Kết thúc",
+        "description": "Mô tả"
+      }
+    },
+    "style": {
+      "dotType": "Kiểu chấm",
+      "color": "Màu",
+      "gradient": "Chuyển màu",
+      "gradientColor": "Màu thứ hai",
+      "gradientType": "Kiểu chuyển màu",
+      "linear": "Thẳng",
+      "radial": "Toả tròn",
+      "rotation": "Góc xoay",
+      "cornerSquare": "Khung góc",
+      "cornerDot": "Chấm góc",
+      "cornerSquareColor": "Màu khung góc",
+      "cornerDotColor": "Màu chấm góc",
+      "bgColor": "Màu nền",
+      "transparent": "Nền trong suốt",
+      "logoUpload": "Tải logo lên",
+      "logoChange": "Đổi logo",
+      "logoRemove": "Bỏ logo",
+      "logoInvalid": "File này không phải ảnh hợp lệ.",
+      "logoSize": "Kích thước logo",
+      "hideDots": "Ẩn chấm sau logo",
+      "logoEcl": "Có logo nên mức sửa lỗi tự nâng lên H để mã vẫn quét được.",
+      "ecl": "Mức sửa lỗi",
+      "eclHint": "Càng cao càng chịu được trầy xước/che khuất, nhưng mã sẽ dày chấm hơn.",
+      "margin": "Lề",
+      "shape": "Hình dạng",
+      "square": "Vuông",
+      "circle": "Tròn",
+      "reset": "Về mặc định"
+    },
+    "dotTypes": {
+      "square": "Vuông",
+      "dots": "Chấm tròn",
+      "rounded": "Bo tròn",
+      "extra-rounded": "Rất tròn",
+      "classy": "Sang",
+      "classy-rounded": "Sang bo"
+    },
+    "cornerTypes": {
+      "square": "Vuông",
+      "dot": "Tròn",
+      "extra-rounded": "Bo tròn"
+    },
+    "presets": {
+      "meoden": "Mèo Đen",
+      "classic": "Cổ điển",
+      "sunset": "Hoàng hôn",
+      "ocean": "Đại dương",
+      "candy": "Kẹo ngọt",
+      "forest": "Rừng xanh",
+      "save": "Lưu mẫu",
+      "namePlaceholder": "Đặt tên cho mẫu hiện tại…",
+      "saved": "Mẫu của bạn",
+      "delete": "Xoá mẫu {{name}}",
+      "apply": "Dùng mẫu {{name}}"
+    },
+    "preview": {
+      "label": "Xem trước mã QR",
+      "empty": "Nhập nội dung để tạo mã",
+      "overflow": "Nội dung quá dài cho một mã QR — rút gọn bớt nhé.",
+      "checking": "Đang quét thử…",
+      "ok": "Quét thử OK — nội dung chuẩn",
+      "mismatch": "Quét ra nội dung sai",
+      "unreadable": "Khó quét — thử tăng tương phản hoặc thu nhỏ logo",
+      "lowContrast": "Màu chấm và màu nền quá giống nhau, máy quét có thể không đọc được.",
+      "inverted": "Chấm sáng trên nền tối — một số app quét không đọc được."
+    },
+    "export": {
+      "format": "Định dạng tải về",
+      "size": "Kích thước",
+      "download": "Tải về",
+      "copy": "Sao chép ảnh",
+      "copied": "Chép vào clipboard rồi nè!",
+      "copyFail": "Trình duyệt không cho chép ảnh 😿",
+      "svgHint": "SVG là ảnh vector — in to cỡ nào cũng nét."
+    }
+  },
+  "cat": {
+    "label": "Mèo Đen — linh vật. Bấm để vuốt ve.",
+    "playground": "Thử cảm xúc của mèo",
+    "moods": {
+      "idle": "Bình thường",
+      "dragover": "Thấy file",
+      "working": "Đang làm",
+      "success": "Xong rồi",
+      "error": "Lỗi",
+      "sleep": "Ngủ",
+      "present": "Khoe QR"
+    },
+    "lines": {
+      "greet": [
+        "Meo~ cần tui giúp gì nè?",
+        "Chào bạn! Hôm nay mình làm gì nào?",
+        "Tui là Mèo Đen, rất hân hạnh~"
+      ],
+      "dragover": [
+        "Ồ, cái gì đấy?",
+        "Đưa đây, đưa đây!",
+        "Mắt tui sáng rực rồi nè!"
+      ],
+      "working": [
+        "Đang cào cào…",
+        "Chờ tui xíu nha!",
+        "Để tui vờn cái này…"
+      ],
+      "success": [
+        "Xong rồi nè! 🐾",
+        "Ngon lành cành đào!",
+        "Mèo đen ra tay là xong!"
+      ],
+      "error": [
+        "Ơ… file này khó nhằn quá",
+        "Có gì đó sai sai rồi 😿",
+        "Tui bó tay… à không, bó chân!"
+      ],
+      "wake": [
+        "Ngáp~ ai gọi tui đó?",
+        "Ơ, tui đâu có ngủ đâu!",
+        "Năm phút nữa thôi mà…"
+      ],
+      "pet": [
+        "grừ grừ~",
+        "Thêm chút nữa đi…",
+        "Meo~ 💕",
+        "Chỗ đó đó, gãi tiếp!"
+      ],
+      "easterEgg": [
+        "Wheee~!",
+        "Xem tui nhào lộn nè!",
+        "Mèo đen biết bay!"
+      ],
+      "present": [
+        "Tada~ mã QR của bạn nè!",
+        "Đẹp chưa nè? Quét thử đi!",
+        "Hàng mới ra lò, nóng hổi!"
+      ]
+    }
+  },
+  "footer": {
+    "privacy": "100% xử lý trên trình duyệt. Ảnh của bạn không rời khỏi máy.",
+    "made": "Làm với 🐾 và GSAP"
+  },
+  "pwa": {
+    "update": "Có bản mới của Mèo Đen Convert.",
+    "reload": "Cập nhật",
+    "offlineReady": "Đã sẵn sàng dùng offline — không cần mạng nữa!",
+    "offline": "Bạn đang offline — mọi tính năng vẫn chạy trên máy.",
+    "offlineCat": "Mất mạng hả? Không sao, tui vẫn làm được hết!",
+    "install": "Cài app",
+    "dismiss": "Đóng"
+  }
+}

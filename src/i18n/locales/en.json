@@ -1,0 +1,320 @@
+{
+  "app": {
+    "name": "Mèo Đen Convert",
+    "tagline": "Convert images & craft QR codes right on your device — no uploads, no sign-up."
+  },
+  "nav": {
+    "convert": "Convert",
+    "qr": "QR Code"
+  },
+  "theme": {
+    "light": "Light theme",
+    "dark": "Dark theme",
+    "system": "System theme",
+    "toggle": "Change theme (current: {{mode}})"
+  },
+  "lang": {
+    "toggle": "Chuyển sang tiếng Việt"
+  },
+  "converter": {
+    "title": "Convert image formats",
+    "subtitle": "HEIC, JPG, PNG, WebP, AVIF, GIF, BMP, TIFF, ICO, SVG… iPhone photos included — just drag and drop.",
+    "dropTitle": "Drop images here",
+    "dropActive": "Let go — the cat's got it!",
+    "dropHint": "or click to pick files",
+    "pasteHint": "Tip: paste images directly with Ctrl/⌘ + V",
+    "settings": {
+      "format": "Output format",
+      "quality": "Quality",
+      "qualityHint": "80–90 is a sweet spot between sharpness and size.",
+      "lossless": "PNG is lossless — quality is preserved exactly.",
+      "background": "Background for transparent areas",
+      "backgroundHint": "JPG can't be transparent, so transparency is filled with this colour.",
+      "lossless_gif": "GIF reduces to at most 256 colors — no quality slider.",
+      "lossless_bmp": "BMP stores raw pixels, uncompressed.",
+      "lossless_tiff": "TIFF stores raw pixels, uncompressed.",
+      "lossless_ico": "Each icon size is stored as lossless PNG."
+    },
+    "formatHints": {
+      "jpeg": "Small, great for photos.",
+      "png": "Pixel-perfect with transparency.",
+      "webp": "Small, keeps transparency.",
+      "avif": "Smallest today, keeps transparency — slower to encode big photos.",
+      "gif": "Up to 256 colors, on/off transparency. Best for simple graphics.",
+      "bmp": "Uncompressed, no transparency — fairly large files.",
+      "tiff": "Uncompressed with transparency — for print/archiving, very large files.",
+      "ico": "Windows icon/favicon with 16–256 px sizes bundled; non-square images are centered on a square."
+    },
+    "actions": {
+      "convertCount_one": "Convert {{count}} image",
+      "convertCount_other": "Convert {{count}} images",
+      "converting": "Converting…",
+      "allDone": "All converted",
+      "clear": "Clear all",
+      "download": "Download",
+      "retry": "Retry",
+      "remove": "Remove this image"
+    },
+    "summary": {
+      "progress": "{{done}}/{{total}} done",
+      "saved": "saved {{size}}",
+      "grew": "{{size}} larger"
+    },
+    "status": {
+      "queued": "Queued",
+      "processing": "Processing…",
+      "stale": "Settings changed — press Convert to redo"
+    },
+    "errors": {
+      "unsupported": "{{format}} isn't supported yet",
+      "decode": "Couldn't read this image (corrupt or unsupported by the browser)",
+      "encode": "Failed to encode the image"
+    },
+    "resize": {
+      "title": "Resize",
+      "none": "Original",
+      "max": "Max side",
+      "percent": "Percent",
+      "maxLabel": "Longest side (px)",
+      "hint_none": "Keep the original dimensions.",
+      "hint_max": "Shrink so the longest side fits this value — smaller images are left alone, never upscaled.",
+      "hint_percent": "Scale down by percentage, keeping the aspect ratio."
+    },
+    "zip": {
+      "button_one": "Download all (.zip, {{count}} image)",
+      "button_other": "Download all (.zip, {{count}} images)",
+      "done_one": "Packed {{count}} image into one zip!",
+      "done_other": "Packed {{count}} images into one zip!"
+    },
+    "notes": {
+      "gifFirstFrame": "Animated GIF: only the first frame is used."
+    }
+  },
+  "qr": {
+    "title": "Create & customize QR codes",
+    "subtitle": "Links, WiFi, contact cards, SMS… pick colors, dot styles, add a logo — all on your device.",
+    "kinds": {
+      "url": "Link",
+      "text": "Text",
+      "wifi": "WiFi",
+      "vcard": "Contact",
+      "email": "Email",
+      "sms": "SMS",
+      "phone": "Phone",
+      "geo": "Location",
+      "event": "Event"
+    },
+    "sections": {
+      "content": "Content",
+      "presets": "Presets",
+      "dots": "Dots",
+      "corners": "Finder corners",
+      "background": "Background",
+      "logo": "Logo",
+      "advanced": "Advanced"
+    },
+    "fields": {
+      "url": {
+        "url": "Link"
+      },
+      "text": {
+        "text": "Text",
+        "textPlaceholder": "Type anything…"
+      },
+      "wifi": {
+        "ssid": "Network name (SSID)",
+        "password": "Password",
+        "security": "Security",
+        "none": "No password",
+        "hidden": "Hidden network"
+      },
+      "vcard": {
+        "firstName": "First name",
+        "lastName": "Last name",
+        "org": "Company",
+        "title": "Job title",
+        "phone": "Phone",
+        "email": "Email",
+        "url": "Website",
+        "address": "Address",
+        "note": "Note"
+      },
+      "email": {
+        "to": "To",
+        "subject": "Subject",
+        "body": "Message"
+      },
+      "sms": {
+        "phone": "Phone number",
+        "message": "Message"
+      },
+      "phone": {
+        "phone": "Phone number"
+      },
+      "geo": {
+        "lat": "Latitude",
+        "lng": "Longitude",
+        "label": "Place name (optional)",
+        "locate": "Use my location",
+        "locateError": "Couldn't get your location — check location permissions."
+      },
+      "event": {
+        "title": "Event name",
+        "location": "Location",
+        "start": "Starts",
+        "end": "Ends",
+        "description": "Description"
+      }
+    },
+    "style": {
+      "dotType": "Dot style",
+      "color": "Color",
+      "gradient": "Gradient",
+      "gradientColor": "Second color",
+      "gradientType": "Gradient type",
+      "linear": "Linear",
+      "radial": "Radial",
+      "rotation": "Angle",
+      "cornerSquare": "Corner frame",
+      "cornerDot": "Corner dot",
+      "cornerSquareColor": "Corner frame color",
+      "cornerDotColor": "Corner dot color",
+      "bgColor": "Background color",
+      "transparent": "Transparent background",
+      "logoUpload": "Upload logo",
+      "logoChange": "Change logo",
+      "logoRemove": "Remove logo",
+      "logoInvalid": "That file isn't a valid image.",
+      "logoSize": "Logo size",
+      "hideDots": "Hide dots behind logo",
+      "logoEcl": "With a logo, error correction is raised to H so the code still scans.",
+      "ecl": "Error correction",
+      "eclHint": "Higher survives scratches and covering better, but makes the code denser.",
+      "margin": "Margin",
+      "shape": "Shape",
+      "square": "Square",
+      "circle": "Circle",
+      "reset": "Reset to default"
+    },
+    "dotTypes": {
+      "square": "Square",
+      "dots": "Dots",
+      "rounded": "Rounded",
+      "extra-rounded": "Extra round",
+      "classy": "Classy",
+      "classy-rounded": "Classy round"
+    },
+    "cornerTypes": {
+      "square": "Square",
+      "dot": "Round",
+      "extra-rounded": "Rounded"
+    },
+    "presets": {
+      "meoden": "Black Cat",
+      "classic": "Classic",
+      "sunset": "Sunset",
+      "ocean": "Ocean",
+      "candy": "Candy",
+      "forest": "Forest",
+      "save": "Save preset",
+      "namePlaceholder": "Name the current look…",
+      "saved": "Your presets",
+      "delete": "Delete preset {{name}}",
+      "apply": "Apply preset {{name}}"
+    },
+    "preview": {
+      "label": "QR code preview",
+      "empty": "Enter some content to make a code",
+      "overflow": "Too much content for one QR code — try shortening it.",
+      "checking": "Test-scanning…",
+      "ok": "Test scan OK — content matches",
+      "mismatch": "Scans to the wrong content",
+      "unreadable": "Hard to scan — raise contrast or shrink the logo",
+      "lowContrast": "Dots and background are too similar; scanners may fail.",
+      "inverted": "Light dots on a dark background — some scanner apps can't read that."
+    },
+    "export": {
+      "format": "Download format",
+      "size": "Size",
+      "download": "Download",
+      "copy": "Copy image",
+      "copied": "Copied to clipboard!",
+      "copyFail": "Your browser won't let me copy images 😿",
+      "svgHint": "SVG is vector — sharp at any print size."
+    }
+  },
+  "cat": {
+    "label": "Black Cat — the mascot. Click to pet.",
+    "playground": "Try the cat's moods",
+    "moods": {
+      "idle": "Idle",
+      "dragover": "Sees a file",
+      "working": "Working",
+      "success": "Done",
+      "error": "Error",
+      "sleep": "Sleep",
+      "present": "Show QR"
+    },
+    "lines": {
+      "greet": [
+        "Meow~ how can I help?",
+        "Hi there! What are we making today?",
+        "I'm Black Cat, nice to meet you~"
+      ],
+      "dragover": [
+        "Ooh, what's that?",
+        "Gimme, gimme!",
+        "My eyes are glowing!"
+      ],
+      "working": [
+        "Scratching away…",
+        "Hang on a sec!",
+        "Let me play with this…"
+      ],
+      "success": [
+        "All done! 🐾",
+        "Purr-fect!",
+        "Black Cat strikes again!"
+      ],
+      "error": [
+        "Hmm… this one's a tough nut",
+        "Something's not right 😿",
+        "I give up… paws up!"
+      ],
+      "wake": [
+        "Yawn~ who called me?",
+        "I wasn't sleeping, I swear!",
+        "Five more minutes…"
+      ],
+      "pet": [
+        "purr purr~",
+        "A little more…",
+        "Meow~ 💕",
+        "Right there, keep going!"
+      ],
+      "easterEgg": [
+        "Wheee~!",
+        "Watch my backflip!",
+        "Black cats can fly!"
+      ],
+      "present": [
+        "Ta-da~ here's your QR code!",
+        "Pretty, right? Give it a scan!",
+        "Fresh out of the oven!"
+      ]
+    }
+  },
+  "footer": {
+    "privacy": "100% in-browser. Your images never leave your device.",
+    "made": "Made with 🐾 and GSAP"
+  },
+  "pwa": {
+    "update": "A new version of Mèo Đen Convert is available.",
+    "reload": "Update",
+    "offlineReady": "Ready to work offline — no connection needed!",
+    "offline": "You're offline — everything still runs on your device.",
+    "offlineCat": "Offline? No worries, I can still do it all!",
+    "install": "Install app",
+    "dismiss": "Dismiss"
+  }
+}

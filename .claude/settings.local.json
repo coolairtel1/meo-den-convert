@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -f lzw.tiff)",
+      "Bash(tiffutil -lzw plain.tiff -out lzw.tiff)",
+      "Bash(npx tsc *)",
+      "Bash(npm test *)"
+    ]
+  }
+}
