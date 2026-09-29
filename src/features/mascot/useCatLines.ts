@@ -1,7 +1,7 @@
 import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 
-export type LineKey = "greet" | "dragover" | "working" | "success" | "error" | "wake" | "pet" | "easterEgg" | "present"
+export type LineKey = "dragover" | "working" | "success" | "error" | "wake" | "pet" | "easterEgg" | "present"
 
 /** Picks a random localized line for the cat to say. */
 export function useCatLines() {

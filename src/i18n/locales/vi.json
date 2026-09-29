@@ -241,7 +241,7 @@
     }
   },
   "cat": {
-    "label": "Mèo Đen — linh vật. Bấm để vuốt ve.",
+    "label": "Tủm — mèo đen linh vật. Bấm để vuốt ve.",
     "playground": "Thử cảm xúc của mèo",
     "moods": {
       "idle": "Bình thường",
@@ -253,11 +253,6 @@
       "present": "Khoe QR"
     },
     "lines": {
-      "greet": [
-        "Meo~ cần tui giúp gì nè?",
-        "Chào bạn! Hôm nay mình làm gì nào?",
-        "Tui là Mèo Đen, rất hân hạnh~"
-      ],
       "dragover": [
         "Ồ, cái gì đấy?",
         "Đưa đây, đưa đây!",
@@ -271,7 +266,7 @@
       "success": [
         "Xong rồi nè! 🐾",
         "Ngon lành cành đào!",
-        "Mèo đen ra tay là xong!"
+        "Tủm ra tay là xong!"
       ],
       "error": [
         "Ơ… file này khó nhằn quá",
@@ -299,7 +294,13 @@
         "Đẹp chưa nè? Quét thử đi!",
         "Hàng mới ra lò, nóng hổi!"
       ]
-    }
+    },
+    "intro": [
+      "Xin chào! Tui là Tủm 🐾",
+      "Tui là mèo đen giữ nhà ở đây — ảnh của bạn được xử lý ngay trên máy, không đi đâu hết.",
+      "Bấm vào tui để vuốt ve nha! Giờ thả ảnh vào, hoặc qua tab Mã QR chơi thử xem."
+    ],
+    "welcomeBack": "I'm Tủm, welcome back"
   },
   "footer": {
     "privacy": "100% xử lý trên trình duyệt. Ảnh của bạn không rời khỏi máy.",

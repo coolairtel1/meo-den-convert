@@ -244,7 +244,7 @@
     }
   },
   "cat": {
-    "label": "Black Cat — the mascot. Click to pet.",
+    "label": "Tủm — the black cat mascot. Click to pet.",
     "playground": "Try the cat's moods",
     "moods": {
       "idle": "Idle",
@@ -256,11 +256,6 @@
       "present": "Show QR"
     },
     "lines": {
-      "greet": [
-        "Meow~ how can I help?",
-        "Hi there! What are we making today?",
-        "I'm Black Cat, nice to meet you~"
-      ],
       "dragover": [
         "Ooh, what's that?",
         "Gimme, gimme!",
@@ -274,7 +269,7 @@
       "success": [
         "All done! 🐾",
         "Purr-fect!",
-        "Black Cat strikes again!"
+        "Tủm strikes again!"
       ],
       "error": [
         "Hmm… this one's a tough nut",
@@ -302,7 +297,13 @@
         "Pretty, right? Give it a scan!",
         "Fresh out of the oven!"
       ]
-    }
+    },
+    "intro": [
+      "Hi there! I'm Tủm 🐾",
+      "I'm the black cat looking after this place — your images are processed right here on your device, never uploaded.",
+      "Click me for a pet! Now drop some images, or try the QR Code tab."
+    ],
+    "welcomeBack": "I'm Tủm, welcome back"
   },
   "footer": {
     "privacy": "100% in-browser. Your images never leave your device.",

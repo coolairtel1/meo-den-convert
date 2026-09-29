@@ -9,7 +9,29 @@ import { useCatLines, type LineKey } from "./useCatLines"
 
 const SLEEP_AFTER_MS = 30_000
 const EASTER_EGG_CLICKS = 5
-const GREETED_KEY = "meoden.greeted"
+/** localStorage: this browser has met Tủm (the intro plays once, ever). */
+const INTRO_KEY = "meoden.introduced"
+/** sessionStorage: already said hello in this tab session. */
+const SESSION_KEY = "meoden.greeted"
+/** Being away (tab hidden or asleep) at least this long earns a "welcome back". */
+const AWAY_MS = 2 * 60_000
+/** …but never more often than this. */
+const WELCOME_COOLDOWN_MS = 5 * 60_000
+
+const readFlag = (store: () => Storage, key: string) => {
+  try {
+    return store().getItem(key) === "1"
+  } catch {
+    return false
+  }
+}
+const writeFlag = (store: () => Storage, key: string) => {
+  try {
+    store().setItem(key, "1")
+  } catch {
+    // storage unavailable: the cat just repeats itself next time
+  }
+}
 
 // Pivot points in SVG user space (viewBox 0 0 220 220).
 const TAIL_ORIGIN = "140 196"
@@ -48,6 +70,8 @@ export function BlackCat({ className }: BlackCatProps) {
   const loopsRef = useRef<gsap.core.Animation[]>([])
   const workLoopRef = useRef<gsap.core.Timeline | null>(null)
   const lastMoveRef = useRef(0)
+  const lastWelcomeRef = useRef(0)
+  const sleptAtRef = useRef(0)
   const hoverRef = useRef(false)
 
   const idPrefix = useId().replace(/[^a-zA-Z0-9]/g, "")
@@ -180,6 +204,31 @@ export function BlackCat({ className }: BlackCatProps) {
     if (wrapRef.current && !prefersReducedMotion()) burst(wrapRef.current, kinds, count, { radial })
   })
 
+  /** A friendly "hi!": a little hop, wiggling ears, rosy cheeks. */
+  const cheer = contextSafe(() => {
+    if (prefersReducedMotion()) return
+    gsap
+      .timeline()
+      .to(".cat-all", { y: -14, duration: 0.2, ease: "power2.out" })
+      .to(".cat-all", { y: 0, duration: 0.5, ease: "bounce.out" })
+    gsap.fromTo(".cat-ear-l", { rotation: 0 }, { rotation: -12, svgOrigin: EAR_L_ORIGIN, duration: 0.1, yoyo: true, repeat: 3 })
+    gsap.fromTo(".cat-ear-r", { rotation: 0 }, { rotation: 12, svgOrigin: EAR_R_ORIGIN, duration: 0.1, yoyo: true, repeat: 3, delay: 0.05 })
+    gsap.fromTo(".cat-blush", { opacity: 0 }, { opacity: 0.8, duration: 0.25, yoyo: true, repeat: 1, repeatDelay: 1.2 })
+  })
+
+  /** "I'm Tủm, welcome back" — rate-limited so it stays a treat. Returns whether it spoke. */
+  const welcomeBack = (animate = true) => {
+    const now = Date.now()
+    if (now - lastWelcomeRef.current < WELCOME_COOLDOWN_MS) return false
+    lastWelcomeRef.current = now
+    say(t("cat.welcomeBack"))
+    if (animate) {
+      cheer()
+      fx(["heart", "paw", "sparkle"], 5)
+    }
+    return true
+  }
+
   // Speech bubble: pops in for each new message, stays long enough to read.
   useGSAP(
     () => {
@@ -255,7 +304,8 @@ export function BlackCat({ className }: BlackCatProps) {
               .to([".cat-ear-l", ".cat-ear-r"], { rotation: 0 }, 1)
               .to(".cat-eye-closed", { opacity: 0, duration: 0.15 }, 1.1)
               .to(".cat-eye-open", { opacity: 1, duration: 0.15 }, 1.1)
-            speak("wake")
+            // A long nap means the user was away: welcome them back instead of grumbling.
+            if (!(Date.now() - sleptAtRef.current >= AWAY_MS && welcomeBack(false))) speak("wake")
           }
           break
 
@@ -337,6 +387,7 @@ export function BlackCat({ className }: BlackCatProps) {
           break
 
         case "sleep":
+          sleptAtRef.current = Date.now()
           tl.to(".cat-eye-open", { opacity: 0, duration: 0.3 }, 0)
             .to(".cat-eye-closed", { opacity: 1, duration: 0.3 }, 0.1)
             .to(".cat-head-pose", { rotation: 9, y: 7, duration: 1.2, ease: "sine.inOut" }, 0)
@@ -364,26 +415,63 @@ export function BlackCat({ className }: BlackCatProps) {
     workLoopRef.current?.timeScale(workSpeed(progress))
   }, [progress])
 
-  // Say hello once per browser session.
+  // First visit ever: Tủm introduces itself. Later sessions: "I'm Tủm, welcome back".
   useEffect(() => {
-    let greeted = false
-    try {
-      greeted = sessionStorage.getItem(GREETED_KEY) === "1"
-    } catch {
-      // storage unavailable: greet anyway
+    if (readFlag(() => sessionStorage, SESSION_KEY)) return
+    const timers: number[] = []
+    const later = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms))
+    // Flags are written when the first line actually plays, so StrictMode's double mount can't swallow it.
+    const markGreeted = () => {
+      writeFlag(() => sessionStorage, SESSION_KEY)
+      writeFlag(() => localStorage, INTRO_KEY)
     }
-    if (greeted) return
-    // Flag only when the greeting actually fires, so StrictMode's double mount doesn't swallow it.
-    const id = window.setTimeout(() => {
-      speak("greet")
-      try {
-        sessionStorage.setItem(GREETED_KEY, "1")
-      } catch {
-        // ignore
-      }
-    }, 1200)
-    return () => window.clearTimeout(id)
+
+    if (!readFlag(() => localStorage, INTRO_KEY)) {
+      const lines = t("cat.intro", { returnObjects: true }) as unknown
+      let at = 1200
+      ;(Array.isArray(lines) ? lines : []).forEach((line: string, i) => {
+        later(at, () => {
+          // Once the user gets busy, stop chatting.
+          if (i > 0 && useCatStore.getState().mood !== "idle") return
+          if (i === 0) markGreeted()
+          say(line)
+          cheer()
+        })
+        // Wait for the bubble to finish (same timing as the bubble itself) plus a breath.
+        at += (1.6 + line.length * 0.045) * 1000 + 700
+      })
+    } else {
+      later(1200, () => {
+        markGreeted()
+        welcomeBack()
+      })
+    }
+    return () => timers.forEach((id) => window.clearTimeout(id))
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once on mount
   }, [])
+
+  // Coming back to the tab after a while also earns a welcome.
+  useEffect(() => {
+    let hiddenAt = 0
+    let timer = 0
+    const onVisibility = () => {
+      if (document.hidden) {
+        hiddenAt = Date.now()
+        return
+      }
+      if (!hiddenAt || Date.now() - hiddenAt < AWAY_MS) return
+      hiddenAt = 0
+      if (useCatStore.getState().mood === "sleep") setMood("idle")
+      // Let a wake-up yawn line go first, then greet.
+      timer = window.setTimeout(() => welcomeBack(), 400)
+    }
+    document.addEventListener("visibilitychange", onVisibility)
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility)
+      window.clearTimeout(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- welcomeBack only reads refs/store
+  }, [setMood])
 
   // Doze off after a while without activity; any activity wakes the cat.
   useEffect(() => {
