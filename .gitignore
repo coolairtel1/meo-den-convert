@@ -29,3 +29,6 @@ media/
 # playwright
 /test-results/
 /playwright-report/
+
+# local Claude Code settings
+.claude/settings.local.json
