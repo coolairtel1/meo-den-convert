@@ -128,6 +128,40 @@
       "done_other": "Combined {{count}} pages into a PDF!",
       "failed": "Couldn't create the PDF 😿",
       "skipped": "Skipped (unreadable): {{files}}"
+    },
+    "watermark": {
+      "title": "Watermark",
+      "type": "Watermark type",
+      "text": "Text",
+      "logo": "Logo",
+      "textLabel": "Watermark text",
+      "color": "Text colour",
+      "uploadLogo": "Upload logo",
+      "changeLogo": "Change logo",
+      "size": "Size (of image width)",
+      "opacity": "Opacity",
+      "position": "Position",
+      "tile": "Tile across",
+      "pos_tl": "Top left",
+      "pos_tc": "Top centre",
+      "pos_tr": "Top right",
+      "pos_ml": "Middle left",
+      "pos_mc": "Centre",
+      "pos_mr": "Middle right",
+      "pos_bl": "Bottom left",
+      "pos_bc": "Bottom centre",
+      "pos_br": "Bottom right"
+    },
+    "rename": {
+      "title": "Batch rename",
+      "pattern": "File name pattern",
+      "start": "Start at",
+      "preview": "Example",
+      "token_name": "Original name",
+      "token_n": "Running number",
+      "token_date": "Today's date",
+      "token_w": "Width",
+      "token_h": "Height"
     }
   },
   "qr": {
@@ -387,5 +421,25 @@
     "sent": "Sent!",
     "tapAgain": "Ready — tap Share once more!",
     "failed": "This device can't share that file 😿"
+  },
+  "editor": {
+    "title": "Edit image",
+    "open": "Edit {{name}}",
+    "edited": "Edited",
+    "loading": "Opening image…",
+    "previewFailed": "Couldn't open this image for editing.",
+    "cropBox": "Crop box — drag to move, drag the dots to resize, or use arrow keys",
+    "aspect": "Crop aspect ratio",
+    "free": "Free",
+    "rotateLeft": "Rotate left 90°",
+    "rotateRight": "Rotate right 90°",
+    "flipH": "Flip horizontally",
+    "flipV": "Flip vertically",
+    "reset": "Reset to original",
+    "outputSize": "Size after cropping: {{w}} × {{h}} px",
+    "hint": "Drag the box to choose what to keep. Your original stays untouched.",
+    "applyAll": "Apply rotate/flip to all",
+    "cancel": "Cancel",
+    "save": "Save"
   }
 }

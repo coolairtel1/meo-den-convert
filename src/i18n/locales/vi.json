@@ -122,6 +122,40 @@
       "done_other": "Gộp {{count}} trang thành PDF rồi nè!",
       "failed": "Không tạo được PDF 😿",
       "skipped": "Bỏ qua (không đọc được): {{files}}"
+    },
+    "watermark": {
+      "title": "Watermark",
+      "type": "Loại watermark",
+      "text": "Chữ",
+      "logo": "Logo",
+      "textLabel": "Nội dung watermark",
+      "color": "Màu chữ",
+      "uploadLogo": "Tải logo lên",
+      "changeLogo": "Đổi logo",
+      "size": "Kích thước (so với bề ngang ảnh)",
+      "opacity": "Độ đậm",
+      "position": "Vị trí",
+      "tile": "Lặp kín ảnh",
+      "pos_tl": "Trên trái",
+      "pos_tc": "Trên giữa",
+      "pos_tr": "Trên phải",
+      "pos_ml": "Giữa trái",
+      "pos_mc": "Chính giữa",
+      "pos_mr": "Giữa phải",
+      "pos_bl": "Dưới trái",
+      "pos_bc": "Dưới giữa",
+      "pos_br": "Dưới phải"
+    },
+    "rename": {
+      "title": "Đổi tên hàng loạt",
+      "pattern": "Mẫu tên file",
+      "start": "Bắt đầu từ",
+      "preview": "Ví dụ",
+      "token_name": "Tên file gốc",
+      "token_n": "Số thứ tự",
+      "token_date": "Ngày hôm nay",
+      "token_w": "Chiều rộng",
+      "token_h": "Chiều cao"
     }
   },
   "qr": {
@@ -380,5 +414,25 @@
     "sent": "Gửi đi rồi nè!",
     "tapAgain": "Xong rồi — bấm Chia sẻ lần nữa nha!",
     "failed": "Máy không cho chia sẻ file này 😿"
+  },
+  "editor": {
+    "title": "Sửa ảnh",
+    "open": "Sửa {{name}}",
+    "edited": "Đã chỉnh sửa",
+    "loading": "Đang mở ảnh…",
+    "previewFailed": "Không mở được ảnh để sửa.",
+    "cropBox": "Khung cắt — kéo để di chuyển, kéo các chấm để đổi cỡ, hoặc dùng phím mũi tên",
+    "aspect": "Tỉ lệ khung cắt",
+    "free": "Tự do",
+    "rotateLeft": "Xoay trái 90°",
+    "rotateRight": "Xoay phải 90°",
+    "flipH": "Lật ngang",
+    "flipV": "Lật dọc",
+    "reset": "Về ảnh gốc",
+    "outputSize": "Kích thước sau khi cắt: {{w}} × {{h}} px",
+    "hint": "Kéo khung để chọn vùng giữ lại. Ảnh gốc không bị thay đổi.",
+    "applyAll": "Áp dụng xoay/lật cho tất cả",
+    "cancel": "Huỷ",
+    "save": "Lưu"
   }
 }

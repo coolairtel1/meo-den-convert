@@ -15,7 +15,7 @@ import { FileList } from "./FileList"
 import { pdfEligible } from "./makePdf"
 import { PdfPanel } from "./PdfPanel"
 import { SettingsPanel } from "./SettingsPanel"
-import { needsConversion, settingsKey, useConverterStore } from "./store"
+import { needsConversion, outputNames, settingsKey, useConverterStore } from "./store"
 
 const FORMATS = ["HEIC", "JPG", "PNG", "WebP", "AVIF", "GIF", "BMP", "TIFF", "ICO", "SVG"]
 
@@ -34,6 +34,8 @@ export function ConverterPage() {
   const convertRef = useMagnetic<HTMLButtonElement>()
 
   const key = settingsKey(settings)
+  const names = outputNames(items, settings.rename)
+  const nameOf = (id: string) => names.get(id) ?? ""
   const pending = items.filter((it) => needsConversion(it, key)).length
   const done = items.filter((it) => it.status === "done")
   const saved = done.reduce((sum, it) => sum + it.file.size - (it.result?.blob.size ?? 0), 0)
@@ -51,7 +53,7 @@ export function ConverterPage() {
   const onZip = async () => {
     setZipping(true)
     try {
-      const zip = await zipFiles(done.map((it) => ({ name: it.result!.name, blob: it.result!.blob })))
+      const zip = await zipFiles(done.map((it) => ({ name: nameOf(it.id), blob: it.result!.blob })))
       const url = URL.createObjectURL(zip)
       const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "")
       downloadUrl(url, `meoden-convert-${stamp}.zip`)
@@ -118,7 +120,7 @@ export function ConverterPage() {
               {done.length >= 2 && canShareFiles() && (
                 <Button
                   variant="outline"
-                  onClick={() => shareWithCat(done.map((it) => blobToFile(it.result!.blob, it.result!.name)))}
+                  onClick={() => shareWithCat(done.map((it) => blobToFile(it.result!.blob, nameOf(it.id))))}
                   disabled={busy}
                   className="active:scale-95"
                 >
@@ -147,7 +149,7 @@ export function ConverterPage() {
             </div>
           </div>
           {pdfOpen && pdfPages >= 1 && <PdfPanel />}
-          <FileList items={items} currentKey={key} />
+          <FileList items={items} currentKey={key} names={names} />
         </div>
       )}
     </div>

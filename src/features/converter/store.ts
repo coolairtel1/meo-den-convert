@@ -6,11 +6,15 @@ import { rasterizeSvg } from "@/lib/codecs/svg"
 import { ConvertError, parseConvertError, type ConvertErrorCode, type InputFormat, type OutputFormat } from "@/lib/codecs/types"
 import { detectFormat, SNIFF_BYTES } from "@/lib/engine/detect"
 import { targetApplies, type TargetSizeOptions } from "@/lib/engine/target"
+import type { WatermarkJob } from "@/lib/edit/composite"
 import { convertInPool } from "@/lib/engine/pool"
 import { replaceExtension } from "@/lib/format"
+import { renderName, type RenameOptions } from "@/lib/edit/rename"
+import { editsKey, type Edits } from "@/lib/edit/transform"
 import type { Orientation, PageSize } from "@/lib/pdf"
 import { safeStorage } from "@/lib/storage"
 import { useCatStore } from "@/features/mascot/catStore"
+import { buildWatermarkJob, DEFAULT_WATERMARK, watermarkKey, type WatermarkSettings } from "./watermarkMark"
 
 export type ItemStatus = "queued" | "processing" | "done" | "error"
 
@@ -19,6 +23,8 @@ export interface ConvertItem {
   file: File
   previewUrl: string
   inputFormat?: InputFormat
+  /** Crop / rotate / flip for this image only. */
+  edits?: Edits
   status: ItemStatus
   progress: number
   result?: {
@@ -50,6 +56,9 @@ export interface ConvertSettings {
   target: TargetSizeOptions
   /** Not part of settingsKey: PDF export re-renders from the originals. */
   pdf: PdfSettings
+  watermark: WatermarkSettings
+  /** Not part of settingsKey: names are computed when showing/saving results. */
+  rename: RenameOptions
 }
 
 interface ConverterState {
@@ -63,6 +72,11 @@ interface ConverterState {
   setResize: (patch: Partial<ResizeOptions>) => void
   setTarget: (patch: Partial<TargetSizeOptions>) => void
   setPdf: (patch: Partial<PdfSettings>) => void
+  setWatermark: (patch: Partial<WatermarkSettings>) => void
+  setRename: (patch: Partial<RenameOptions>) => void
+  setEdits: (id: string, edits: Edits | undefined) => void
+  /** Copies rotation/flip (not crop) to every image. */
+  applyOrientationToAll: (edits: Pick<Edits, "rotate" | "flipX" | "flipY">) => void
   /** Moves an item to `toIndex` (page order for PDF export). */
   moveItem: (id: string, toIndex: number) => void
   convertAll: () => Promise<void>
@@ -78,7 +92,29 @@ export const settingsKey = (s: ConvertSettings) =>
     s.resize.mode,
     s.resize.mode === "max" ? s.resize.max : s.resize.mode === "percent" ? s.resize.percent : "",
     targetApplies(s) ? s.target.kb : "",
+    watermarkKey(s.watermark),
   ].join("|")
+
+/** The key a single item's result must carry: shared settings + that image's own edits. */
+export const itemKey = (base: string, item: ConvertItem) => `${base}|${editsKey(item.edits)}`
+
+/** Output file names in list order, following the rename pattern (numbered over finished items). */
+export function outputNames(items: ConvertItem[], rename: RenameOptions): Map<string, string> {
+  const done = items.filter((it) => it.result)
+  return new Map(
+    done.map((it, index) => [
+      it.id,
+      renderName(rename, {
+        originalName: it.file.name,
+        extension: it.result!.name.split(".").pop() ?? "",
+        index,
+        total: done.length,
+        width: it.result!.width,
+        height: it.result!.height,
+      }),
+    ]),
+  )
+}
 
 /**
  * Items that a "Convert" click would (re)process. Unsupported and unreadable files are skipped:
@@ -88,7 +124,7 @@ export const needsConversion = (item: ConvertItem, key: string) =>
   item.error?.code !== "unsupported" &&
   item.error?.code !== "decode" &&
   item.status !== "processing" &&
-  (item.status !== "done" || item.result?.settingsKey !== key)
+  (item.status !== "done" || item.result?.settingsKey !== itemKey(key, item))
 
 const revoke = (item: ConvertItem) => {
   URL.revokeObjectURL(item.previewUrl)
@@ -103,8 +139,13 @@ export const useConverterStore = create<ConverterState>()(
           items: s.items.map((it) => (it.id === id ? { ...it, ...(typeof p === "function" ? p(it) : p) } : it)),
         }))
 
-      const run = async (item: ConvertItem, settings: ConvertSettings, onProgress: (p: number) => void) => {
-        const key = settingsKey(settings)
+      const run = async (
+        item: ConvertItem,
+        settings: ConvertSettings,
+        watermark: WatermarkJob | null,
+        onProgress: (p: number) => void,
+      ) => {
+        const key = itemKey(settingsKey(settings), item)
         if (item.result) URL.revokeObjectURL(item.result.url)
         patch(item.id, { status: "processing", progress: 0, error: undefined, result: undefined })
         try {
@@ -117,7 +158,7 @@ export const useConverterStore = create<ConverterState>()(
               throw new ConvertError("decode", e instanceof Error ? e.message : String(e))
             }
           }
-          const res = await convertInPool(source, settings, (progress) => {
+          const res = await convertInPool(source, { ...settings, edits: item.edits ?? null, watermark }, (progress) => {
             patch(item.id, { progress })
             onProgress(progress)
           })
@@ -158,7 +199,9 @@ export const useConverterStore = create<ConverterState>()(
           progress.set(id, p)
           setProgress([...progress.values()].reduce((a, b) => a + b, 0) / batch.length)
         }
-        const outcomes = await Promise.all(batch.map((it) => run(it, settings, report(it.id))))
+        // The watermark is rendered once per batch on the main thread (fonts live here).
+        const watermark = await buildWatermarkJob(settings.watermark).catch(() => null)
+        const outcomes = await Promise.all(batch.map((it) => run(it, settings, watermark, report(it.id))))
         set({ busy: get().items.some((it) => it.status === "processing") })
         setMood(outcomes.every(Boolean) ? "success" : "error")
       }
@@ -172,6 +215,8 @@ export const useConverterStore = create<ConverterState>()(
           resize: { mode: "none", max: 1920, percent: 50 },
           target: { enabled: false, kb: 500 },
           pdf: { pageSize: "a4", orientation: "auto", marginMm: 10, quality: "medium" },
+          watermark: DEFAULT_WATERMARK,
+          rename: { enabled: false, pattern: "{name}_{n}", start: 1 },
         },
         busy: false,
 
@@ -214,6 +259,13 @@ export const useConverterStore = create<ConverterState>()(
         setResize: (p) => set((s) => ({ settings: { ...s.settings, resize: { ...s.settings.resize, ...p } } })),
         setTarget: (p) => set((s) => ({ settings: { ...s.settings, target: { ...s.settings.target, ...p } } })),
         setPdf: (p) => set((s) => ({ settings: { ...s.settings, pdf: { ...s.settings.pdf, ...p } } })),
+        setWatermark: (p) => set((s) => ({ settings: { ...s.settings, watermark: { ...s.settings.watermark, ...p } } })),
+        setRename: (p) => set((s) => ({ settings: { ...s.settings, rename: { ...s.settings.rename, ...p } } })),
+        setEdits: (id, edits) => patch(id, { edits }),
+        applyOrientationToAll: ({ rotate, flipX, flipY }) =>
+          set((s) => ({
+            items: s.items.map((it) => ({ ...it, edits: { crop: null, ...it.edits, rotate, flipX, flipY } })),
+          })),
 
         moveItem: (id, toIndex) =>
           set((s) => {
@@ -251,6 +303,8 @@ export const useConverterStore = create<ConverterState>()(
             resize: { ...current.settings.resize, ...saved.resize },
             target: { ...current.settings.target, ...saved.target },
             pdf: { ...current.settings.pdf, ...saved.pdf },
+            watermark: { ...current.settings.watermark, ...saved.watermark },
+            rename: { ...current.settings.rename, ...saved.rename },
           },
         }
       },

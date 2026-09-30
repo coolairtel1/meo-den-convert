@@ -6,9 +6,11 @@ import { useConverterStore, type ConvertItem } from "./store"
 interface FileListProps {
   items: ConvertItem[]
   currentKey: string
+  /** Output names after the rename pattern, by item id. */
+  names: Map<string, string>
 }
 
-export function FileList({ items, currentKey }: FileListProps) {
+export function FileList({ items, currentKey, names }: FileListProps) {
   const listRef = useRef<HTMLUListElement>(null)
   const seen = useRef(new Set<string>())
   const flipState = useRef<Flip.FlipState | null>(null)
@@ -97,6 +99,7 @@ export function FileList({ items, currentKey }: FileListProps) {
           index={i}
           total={items.length}
           currentKey={currentKey}
+          outputName={names.get(item.id)}
           onRemove={onRemove}
           onRetry={convertOne}
           onDrop={reorderable ? onDrop : undefined}

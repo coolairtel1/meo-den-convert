@@ -1,5 +1,5 @@
-import { AlertCircle, Check, Download, GripVertical, RotateCcw, Share2, X } from "lucide-react"
-import { useRef, useState } from "react"
+import { AlertCircle, Check, Crop, Download, GripVertical, RotateCcw, Scissors, Share2, X } from "lucide-react"
+import { lazy, Suspense, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { FORMAT_LABEL } from "@/lib/codecs/support"
@@ -9,13 +9,19 @@ import { blobToFile, canShareFiles } from "@/lib/share"
 import { formatBytes, kbLabel } from "@/lib/format"
 import { Draggable, gsap, prefersReducedMotion, useGSAP } from "@/lib/motion/gsap"
 import { cn } from "@/lib/utils"
-import type { ConvertItem } from "./store"
+import { hasEdits } from "@/lib/edit/transform"
+import { itemKey, type ConvertItem } from "./store"
 
+
+// The editor (crop UI, dialog) only loads when someone opens it.
+const EditorDialog = lazy(() => import("./EditorDialog").then((m) => ({ default: m.EditorDialog })))
 interface FileCardProps {
   item: ConvertItem
   index: number
   total: number
   currentKey: string
+  /** Name to save/share the result as (rename pattern applied). */
+  outputName?: string
   onRemove: (id: string, el: HTMLElement) => void
   onRetry: (id: string) => void
   /** Present when the list can be reordered (page order for PDF). */
@@ -23,10 +29,12 @@ interface FileCardProps {
   onNudge?: (id: string, delta: number) => void
 }
 
-export function FileCard({ item, index, total, currentKey, onRemove, onRetry, onDrop, onNudge }: FileCardProps) {
+export function FileCard({ item, index, total, currentKey, outputName, onRemove, onRetry, onDrop, onNudge }: FileCardProps) {
   const { t, i18n } = useTranslation()
   const ref = useRef<HTMLLIElement>(null)
   const handleRef = useRef<HTMLButtonElement>(null)
+  const [editing, setEditing] = useState(false)
+  const edited = hasEdits(item.edits)
   const prevStatus = useRef(item.status)
   // Remember which src failed (e.g. HEIC preview in Chrome) so the converted result can still show.
   const [failedSrc, setFailedSrc] = useState<string>()
@@ -98,7 +106,8 @@ export function FileCard({ item, index, total, currentKey, onRemove, onRetry, on
   )
 
   const thumbSrc = result?.url ?? item.previewUrl
-  const stale = status === "done" && result?.settingsKey !== currentKey
+  const saveName = outputName || result?.name || file.name
+  const stale = status === "done" && result?.settingsKey !== itemKey(currentKey, item)
   const outFormat = result ? (result.name.split(".").pop() ?? "") : ""
   const delta = result ? result.blob.size / file.size - 1 : 0
 
@@ -163,8 +172,11 @@ export function FileCard({ item, index, total, currentKey, onRemove, onRetry, on
       </div>
 
       <div className="min-w-0 flex-1 space-y-1">
-        <p className="truncate text-sm font-semibold" title={file.name}>
-          {result?.name ?? file.name}
+        <p className="flex items-center gap-1.5 truncate text-sm font-semibold" title={file.name}>
+          {edited && (
+            <Scissors className="size-3.5 shrink-0 text-brand" aria-label={t("editor.edited")} />
+          )}
+          <span className="truncate">{result ? saveName : file.name}</span>
         </p>
         <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
           <span className="font-semibold">{FORMAT_LABEL[inputFormat ?? "unknown"]}</span>
@@ -222,12 +234,24 @@ export function FileCard({ item, index, total, currentKey, onRemove, onRetry, on
         {status === "processing" && (
           <span className="text-xs font-medium text-muted-foreground">{t("converter.status.processing")}</span>
         )}
+        {status !== "processing" && error?.code !== "unsupported" && error?.code !== "decode" && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setEditing(true)}
+            aria-label={t("editor.open", { name: file.name })}
+            title={t("editor.title")}
+            className="mr-1 active:scale-95"
+          >
+            <Crop aria-hidden />
+          </Button>
+        )}
         {status === "done" && result && canShareFiles() && (
           <Button
             size="sm"
             variant="outline"
-            onClick={() => shareWithCat([blobToFile(result.blob, result.name)])}
-            aria-label={t("share.shareFile", { name: result.name })}
+            onClick={() => shareWithCat([blobToFile(result.blob, saveName)])}
+            aria-label={t("share.shareFile", { name: saveName })}
             className="mr-1.5 active:scale-95"
           >
             <Share2 aria-hidden />
@@ -237,8 +261,8 @@ export function FileCard({ item, index, total, currentKey, onRemove, onRetry, on
         {status === "done" && result && (
           <Button
             size="sm"
-            onClick={() => downloadUrl(result.url, result.name)}
-            aria-label={`${t("converter.actions.download")} ${result.name}`}
+            onClick={() => downloadUrl(result.url, saveName)}
+            aria-label={`${t("converter.actions.download")} ${saveName}`}
             className="active:scale-95"
           >
             <Download aria-hidden />
@@ -274,6 +298,11 @@ export function FileCard({ item, index, total, currentKey, onRemove, onRetry, on
           <circle cx="18.5" cy="10" r="2.3" />
         </svg>
       </div>
+      {editing && (
+        <Suspense fallback={null}>
+          <EditorDialog item={item} open={editing} onOpenChange={setEditing} />
+        </Suspense>
+      )}
     </li>
   )
 }

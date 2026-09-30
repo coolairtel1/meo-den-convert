@@ -1,6 +1,7 @@
 import { rasterizeSvg } from "@/lib/codecs/svg"
 import { convertInPool } from "@/lib/engine/pool"
 import { buildPdf, type PdfPage } from "@/lib/pdf"
+import type { WatermarkJob } from "@/lib/edit/composite"
 import type { ConvertItem, PdfQuality, PdfSettings } from "./store"
 
 /** Page image quality presets (A4 at ~300 dpi is 2480 × 3508 px). */
@@ -23,6 +24,7 @@ export async function makePdf(
   settings: PdfSettings,
   title: string,
   onProgress?: (fraction: number) => void,
+  watermark: WatermarkJob | null = null,
 ): Promise<{ blob: Blob; pages: number; failed: string[] }> {
   const q = QUALITY[settings.quality]
   const progress = new Map<string, number>()
@@ -44,6 +46,9 @@ export async function makePdf(
             background: "#ffffff",
             resize: q.maxSide ? { mode: "max", max: q.maxSide, percent: 100 } : { mode: "none", max: 0, percent: 100 },
             target: { enabled: false, kb: 0 },
+            // Pages get the same crop/rotation and watermark as the converted images.
+            edits: it.edits ?? null,
+            watermark,
           },
           report(it.id),
         )

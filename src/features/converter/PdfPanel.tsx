@@ -11,6 +11,7 @@ import { formatBytes } from "@/lib/format"
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/motion/gsap"
 import type { Orientation, PageSize } from "@/lib/pdf"
 import { makePdf, pdfEligible } from "./makePdf"
+import { buildWatermarkJob } from "./watermarkMark"
 import { useConverterStore, type PdfQuality } from "./store"
 
 /** Options + "Create PDF" for combining the current list (in its order) into one document. */
@@ -42,10 +43,17 @@ export function PdfPanel() {
     try {
       const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "")
       const name = `meoden-${stamp}`
-      const res = await makePdf(pages, pdf, name, (p) => {
-        setProgress(p)
-        setCatProgress(p)
-      })
+      const watermark = await buildWatermarkJob(useConverterStore.getState().settings.watermark).catch(() => null)
+      const res = await makePdf(
+        pages,
+        pdf,
+        name,
+        (p) => {
+          setProgress(p)
+          setCatProgress(p)
+        },
+        watermark,
+      )
       const url = URL.createObjectURL(res.blob)
       downloadUrl(url, `${name}.pdf`)
       window.setTimeout(() => URL.revokeObjectURL(url), 10_000)

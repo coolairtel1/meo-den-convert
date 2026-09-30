@@ -2,13 +2,17 @@ import { useId, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { SegmentedControl } from "@/components/motion/SegmentedControl"
 import { useSlidingPill } from "@/components/motion/useSlidingPill"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import type { ResizeMode } from "@/lib/codecs/resize"
-import { FORMAT_LABEL, HAS_ALPHA, LOSSY, OUTPUT_FORMATS } from "@/lib/codecs/support"
+import { EXTENSION, FORMAT_LABEL, HAS_ALPHA, LOSSY, OUTPUT_FORMATS } from "@/lib/codecs/support"
 import type { OutputFormat } from "@/lib/codecs/types"
 import { kbLabel } from "@/lib/format"
+import { renderName } from "@/lib/edit/rename"
+import { WATERMARK_POSITIONS, type WatermarkPosition } from "@/lib/edit/watermark"
+import { fileToDownscaledDataUrl } from "@/lib/image"
 import { cn } from "@/lib/utils"
 import { useConverterStore } from "./store"
 
@@ -65,6 +69,8 @@ export function SettingsPanel() {
 
       <ResizeControls />
       <TargetControls />
+      <WatermarkControls />
+      <RenameControls />
 
       {!HAS_ALPHA[format] && (
         <div className="space-y-2 sm:col-span-2">
@@ -292,6 +298,216 @@ function TargetControls() {
             </p>
           </>
         )
+      )}
+    </div>
+  )
+}
+
+const WM_COLORS = ["#ffffff", "#000000", "#f2c94c", "#e53935"]
+
+/** Text or logo watermark: 3×3 placement grid or a diagonal tile, size and opacity. */
+function WatermarkControls() {
+  const { t } = useTranslation()
+  const wm = useConverterStore((s) => s.settings.watermark)
+  const setWatermark = useConverterStore((s) => s.setWatermark)
+  const busy = useConverterStore((s) => s.busy)
+  const switchId = useId()
+  const textId = useId()
+  const logoRef = useRef<HTMLInputElement>(null)
+
+  return (
+    <div className="space-y-3 sm:col-span-2">
+      <div className="flex items-center gap-2.5">
+        <Switch id={switchId} checked={wm.enabled} disabled={busy} onCheckedChange={(enabled) => setWatermark({ enabled })} />
+        <label htmlFor={switchId} className="text-sm font-semibold">
+          {t("converter.watermark.title")}
+        </label>
+      </div>
+      {wm.enabled && (
+        <div className="grid gap-4 rounded-xl bg-muted/50 p-3 sm:grid-cols-[1fr_auto]">
+          <div className="space-y-3">
+            <SegmentedControl
+              label={t("converter.watermark.type")}
+              value={wm.type}
+              disabled={busy}
+              onChange={(type) => setWatermark({ type })}
+              options={[
+                { value: "text", label: t("converter.watermark.text") },
+                { value: "logo", label: t("converter.watermark.logo") },
+              ]}
+              className="max-w-xs"
+            />
+            {wm.type === "text" ? (
+              <div className="space-y-2">
+                <label htmlFor={textId} className="sr-only">
+                  {t("converter.watermark.textLabel")}
+                </label>
+                <Input id={textId} value={wm.text} maxLength={60} disabled={busy} onChange={(e) => setWatermark({ text: e.target.value })} />
+                <div className="flex items-center gap-2" role="radiogroup" aria-label={t("converter.watermark.color")}>
+                  {WM_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      role="radio"
+                      aria-checked={wm.color === c}
+                      aria-label={c}
+                      disabled={busy}
+                      onClick={() => setWatermark({ color: c })}
+                      style={{ background: c }}
+                      className={cn(
+                        "size-7 rounded-full border-2 shadow-sm transition-[scale] hover:scale-110 active:scale-90",
+                        wm.color === c ? "border-brand ring-3 ring-brand/30" : "border-border",
+                      )}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                {wm.logo && <img src={wm.logo} alt="" className="size-12 rounded-lg border bg-white object-contain p-1" />}
+                <Button variant="outline" size="sm" disabled={busy} onClick={() => logoRef.current?.click()}>
+                  {wm.logo ? t("converter.watermark.changeLogo") : t("converter.watermark.uploadLogo")}
+                </Button>
+                <input
+                  ref={logoRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0]
+                    e.target.value = ""
+                    if (f) setWatermark({ logo: await fileToDownscaledDataUrl(f, 512) })
+                  }}
+                />
+              </div>
+            )}
+            <SliderField label={t("converter.watermark.size")} value={Math.round(wm.scale * 100)} min={5} max={80} unit="%" disabled={busy} onChange={(v) => setWatermark({ scale: v / 100 })} />
+            <SliderField label={t("converter.watermark.opacity")} value={Math.round(wm.opacity * 100)} min={10} max={100} unit="%" disabled={busy} onChange={(v) => setWatermark({ opacity: v / 100 })} />
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground">{t("converter.watermark.position")}</p>
+            <div role="radiogroup" aria-label={t("converter.watermark.position")} className="grid w-28 grid-cols-3 gap-1">
+              {WATERMARK_POSITIONS.map((p) => (
+                <PositionCell key={p} value={p} active={wm.position === p} disabled={busy} onClick={() => setWatermark({ position: p })} label={t(`converter.watermark.pos_${p}`)} />
+              ))}
+            </div>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={wm.position === "tile"}
+              disabled={busy}
+              onClick={() => setWatermark({ position: "tile" })}
+              className={cn(
+                "w-28 rounded-lg border px-2 py-1 text-xs font-semibold transition-colors",
+                wm.position === "tile" ? "border-brand bg-brand/15" : "hover:bg-muted",
+              )}
+            >
+              {t("converter.watermark.tile")}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PositionCell({ value, active, disabled, onClick, label }: { value: WatermarkPosition; active: boolean; disabled: boolean; onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={active}
+      aria-label={label}
+      title={label}
+      data-pos={value}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "grid aspect-square place-items-center rounded-md border transition-[background-color,scale] active:scale-90",
+        active ? "border-brand bg-brand/20" : "bg-card hover:bg-muted",
+      )}
+    >
+      <span className={cn("size-2 rounded-full", active ? "bg-brand" : "bg-muted-foreground/40")} />
+    </button>
+  )
+}
+
+function SliderField({ label, value, min, max, unit, disabled, onChange }: { label: string; value: number; min: number; max: number; unit: string; disabled?: boolean; onChange: (v: number) => void }) {
+  const id = useId()
+  return (
+    <div className="space-y-1">
+      <div className="flex items-baseline justify-between">
+        <p id={id} className="text-xs font-medium text-muted-foreground">
+          {label}
+        </p>
+        <span className="text-xs font-semibold tabular-nums">
+          {value}
+          {unit}
+        </span>
+      </div>
+      <Slider aria-labelledby={id} min={min} max={max} step={1} value={[value]} disabled={disabled} onValueChange={([v]) => onChange(v)} className="py-1.5" />
+    </div>
+  )
+}
+
+const RENAME_TOKENS = ["{name}", "{n}", "{date}", "{w}", "{h}"]
+
+/** Pattern-based output names with a live preview of the first few files. */
+function RenameControls() {
+  const { t } = useTranslation()
+  const rename = useConverterStore((s) => s.settings.rename)
+  const setRename = useConverterStore((s) => s.setRename)
+  const items = useConverterStore((s) => s.items)
+  const format = useConverterStore((s) => s.settings.format)
+  const switchId = useId()
+  const patternId = useId()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const sample = (items.length ? items : [{ file: { name: "IMG_0001.HEIC" } }]).slice(0, 3)
+
+  const insert = (token: string) => {
+    const el = inputRef.current
+    const at = el?.selectionStart ?? rename.pattern.length
+    setRename({ pattern: rename.pattern.slice(0, at) + token + rename.pattern.slice(el?.selectionEnd ?? at) })
+    requestAnimationFrame(() => el?.focus())
+  }
+
+  return (
+    <div className="space-y-2 sm:col-span-2">
+      <div className="flex items-center gap-2.5">
+        <Switch id={switchId} checked={rename.enabled} onCheckedChange={(enabled) => setRename({ enabled })} />
+        <label htmlFor={switchId} className="text-sm font-semibold">
+          {t("converter.rename.title")}
+        </label>
+      </div>
+      {rename.enabled && (
+        <div className="space-y-2 rounded-xl bg-muted/50 p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <label htmlFor={patternId} className="sr-only">
+              {t("converter.rename.pattern")}
+            </label>
+            <Input ref={inputRef} id={patternId} value={rename.pattern} maxLength={80} spellCheck={false} onChange={(e) => setRename({ pattern: e.target.value })} className="h-8 max-w-xs font-mono text-sm" />
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              {t("converter.rename.start")}
+              <Input type="number" min={0} value={rename.start} onChange={(e) => setRename({ start: Math.max(0, Math.round(Number(e.target.value) || 0)) })} className="h-8 w-16" />
+            </label>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {RENAME_TOKENS.map((tok) => (
+              <button key={tok} type="button" onClick={() => insert(tok)} className="rounded-md border bg-card px-2 py-0.5 font-mono text-xs transition-[background-color,scale] hover:bg-muted active:scale-95" title={t(`converter.rename.token_${tok.slice(1, -1)}`)}>
+                {tok}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("converter.rename.preview")}:{" "}
+            <span className="font-mono text-foreground">
+              {sample
+                .map((it, i) => renderName(rename, { originalName: it.file.name, extension: EXTENSION[format], index: i, total: Math.max(items.length, sample.length), width: 1080, height: 1080 }))
+                .join(", ")}
+              {items.length > 3 ? ", …" : ""}
+            </span>
+          </p>
+        </div>
       )}
     </div>
   )

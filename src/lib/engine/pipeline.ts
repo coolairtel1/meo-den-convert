@@ -2,6 +2,8 @@ import { getDecoder, getEncoder } from "@/lib/codecs/registry"
 import { resizeImage, targetSize, type ResizeOptions } from "@/lib/codecs/resize"
 import { ConvertError, type EncodeOptions, type InputFormat, type OutputFormat } from "@/lib/codecs/types"
 import { detectFormat, SNIFF_BYTES } from "./detect"
+import { compositeWatermark, type WatermarkJob } from "@/lib/edit/composite"
+import { applyEdits, type Edits } from "@/lib/edit/transform"
 import { BITS_PER_PIXEL, fitToSize } from "./fitSize"
 import { targetApplies, type TargetSizeOptions } from "./target"
 
@@ -9,6 +11,9 @@ export interface ConvertOptions extends EncodeOptions {
   format: OutputFormat
   resize: ResizeOptions
   target: TargetSizeOptions
+  /** Per-image crop/rotate/flip. */
+  edits?: Edits | null
+  watermark?: WatermarkJob | null
 }
 
 export interface ConvertResult {
@@ -23,7 +28,10 @@ export interface ConvertResult {
 
 export type ProgressFn = (fraction: number) => void
 
-/** decode → (resize) → encode, or search for the best encode under a size budget. Runs inside a worker. */
+/**
+ * decode → edits (rotate/flip/crop) → resize → watermark → encode (or search for the best encode
+ * under a size budget). Runs inside a worker.
+ */
 export async function convertImage(file: Blob, options: ConvertOptions, onProgress?: ProgressFn): Promise<ConvertResult> {
   const head = new Uint8Array(await file.slice(0, SNIFF_BYTES).arrayBuffer())
   const inputFormat = detectFormat(head)
@@ -39,6 +47,9 @@ export async function convertImage(file: Blob, options: ConvertOptions, onProgre
   }
   onProgress?.(0.45)
 
+  const edited = applyEdits(image, options.edits)
+  if (edited !== image) image = new ImageData(edited.data as Uint8ClampedArray<ArrayBuffer>, edited.width, edited.height)
+
   const size = targetSize(image.width, image.height, options.resize)
   if (size) {
     try {
@@ -47,6 +58,14 @@ export async function convertImage(file: Blob, options: ConvertOptions, onProgre
       throw new ConvertError("encode", `resize: ${e instanceof Error ? e.message : String(e)}`)
     }
     onProgress?.(0.55)
+  }
+
+  if (options.watermark) {
+    try {
+      image = await compositeWatermark(image, options.watermark)
+    } catch (e) {
+      throw new ConvertError("encode", `watermark: ${e instanceof Error ? e.message : String(e)}`)
+    }
   }
 
   const encoder = getEncoder(options.format)
