@@ -369,5 +369,16 @@
     "offlineCat": "Mất mạng hả? Không sao, tui vẫn làm được hết!",
     "install": "Cài app",
     "dismiss": "Đóng"
+  },
+  "share": {
+    "button": "Chia sẻ",
+    "shareAll": "Chia sẻ tất cả",
+    "sharePdf": "Chia sẻ PDF",
+    "shareFile": "Chia sẻ {{name}}",
+    "received_other": "Nhận {{count}} ảnh từ máy rồi nè!",
+    "receivedNone": "Không nhận được ảnh nào 😿",
+    "sent": "Gửi đi rồi nè!",
+    "tapAgain": "Xong rồi — bấm Chia sẻ lần nữa nha!",
+    "failed": "Máy không cho chia sẻ file này 😿"
   }
 }

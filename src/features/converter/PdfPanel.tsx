@@ -1,10 +1,12 @@
-import { FileText, Loader2 } from "lucide-react"
+import { FileText, Loader2, Share2 } from "lucide-react"
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { SegmentedControl } from "@/components/motion/SegmentedControl"
 import { Button } from "@/components/ui/button"
 import { useCatStore } from "@/features/mascot/catStore"
+import { shareWithCat } from "@/features/share/shareWithCat"
 import { downloadUrl } from "@/lib/download"
+import { canShareFiles } from "@/lib/share"
 import { formatBytes } from "@/lib/format"
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/motion/gsap"
 import type { Orientation, PageSize } from "@/lib/pdf"
@@ -20,7 +22,7 @@ export function PdfPanel() {
   const busyConverting = useConverterStore((s) => s.busy)
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [last, setLast] = useState<{ pages: number; size: number; failed: string[] } | null>(null)
+  const [last, setLast] = useState<{ pages: number; size: number; failed: string[]; file: File } | null>(null)
   const ref = useRef<HTMLDivElement>(null)
   const pages = items.filter(pdfEligible)
 
@@ -47,7 +49,12 @@ export function PdfPanel() {
       const url = URL.createObjectURL(res.blob)
       downloadUrl(url, `${name}.pdf`)
       window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
-      setLast({ pages: res.pages, size: res.blob.size, failed: res.failed })
+      setLast({
+        pages: res.pages,
+        size: res.blob.size,
+        failed: res.failed,
+        file: new File([res.blob], `${name}.pdf`, { type: "application/pdf" }),
+      })
       setMood(res.failed.length ? "error" : "success")
       say(t("converter.pdf.done", { count: res.pages }))
     } catch {
@@ -127,6 +134,12 @@ export function PdfPanel() {
           <p role="status" className="text-sm text-muted-foreground">
             {t("converter.pdf.summary", { count: last.pages, size: formatBytes(last.size, i18n.resolvedLanguage) })}
           </p>
+        )}
+        {last && !busy && canShareFiles() && (
+          <Button variant="outline" onClick={() => shareWithCat([last.file])} className="active:scale-95">
+            <Share2 aria-hidden />
+            {t("share.sharePdf")}
+          </Button>
         )}
       </div>
       {last?.failed.length ? (

@@ -29,23 +29,31 @@ export default defineConfig({
           { src: 'pwa-512.png', sizes: '512x512', type: 'image/png' },
           { src: 'maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
+        // Android: appear in the system share sheet for images (handled in src/sw/sw.ts).
+        share_target: {
+          action: './share-target',
+          method: 'POST',
+          enctype: 'multipart/form-data',
+          params: {
+            files: [
+              {
+                name: 'images',
+                accept: ['image/*', 'image/heic', 'image/heif', '.heic', '.heif', '.avif', '.tif', '.tiff', '.svg'],
+              },
+            ],
+          },
+        },
       },
-      workbox: {
+      // Our own worker (src/sw/sw.ts): precaching as before, plus the Android share target.
+      strategies: 'injectManifest',
+      srcDir: 'src/sw',
+      filename: 'sw.ts',
+      injectManifest: {
         // Precache the whole app, including the HEIC/JPEG/PNG/WebP/resize WASM, so it works offline right away.
         globPatterns: ['**/*.{js,css,html,svg,png,woff2,wasm}'],
         // The AVIF encoder (2 × 3.5 MB) and rarely used font subsets are cached on first use instead.
         globIgnores: ['**/avif_enc*', '**/*-{cyrillic,cyrillic-ext,greek,devanagari}-*.woff2'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
-        // Control the page on the very first visit (nothing to replace yet); later updates still wait for the prompt.
-        clientsClaim: true,
-        navigateFallback: 'index.html',
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) => /\/assets\/(avif_enc|.*-(cyrillic|greek|devanagari))/.test(url.pathname),
-            handler: 'CacheFirst',
-            options: { cacheName: 'meoden-lazy-assets', expiration: { maxEntries: 20 } },
-          },
-        ],
       },
     }),
   ],

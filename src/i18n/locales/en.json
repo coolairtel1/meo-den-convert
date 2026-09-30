@@ -375,5 +375,17 @@
     "offlineCat": "Offline? No worries, I can still do it all!",
     "install": "Install app",
     "dismiss": "Dismiss"
+  },
+  "share": {
+    "button": "Share",
+    "shareAll": "Share all",
+    "sharePdf": "Share PDF",
+    "shareFile": "Share {{name}}",
+    "received_one": "Got {{count}} image from your phone!",
+    "received_other": "Got {{count}} images from your phone!",
+    "receivedNone": "No images came through 😿",
+    "sent": "Sent!",
+    "tapAgain": "Ready — tap Share once more!",
+    "failed": "This device can't share that file 😿"
   }
 }

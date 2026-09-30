@@ -1,9 +1,11 @@
-import { AlertCircle, Check, Download, GripVertical, RotateCcw, X } from "lucide-react"
+import { AlertCircle, Check, Download, GripVertical, RotateCcw, Share2, X } from "lucide-react"
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { FORMAT_LABEL } from "@/lib/codecs/support"
+import { shareWithCat } from "@/features/share/shareWithCat"
 import { downloadUrl } from "@/lib/download"
+import { blobToFile, canShareFiles } from "@/lib/share"
 import { formatBytes, kbLabel } from "@/lib/format"
 import { Draggable, gsap, prefersReducedMotion, useGSAP } from "@/lib/motion/gsap"
 import { cn } from "@/lib/utils"
@@ -219,6 +221,18 @@ export function FileCard({ item, index, total, currentKey, onRemove, onRetry, on
         {status === "queued" && <span className="text-xs text-muted-foreground">{t("converter.status.queued")}</span>}
         {status === "processing" && (
           <span className="text-xs font-medium text-muted-foreground">{t("converter.status.processing")}</span>
+        )}
+        {status === "done" && result && canShareFiles() && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => shareWithCat([blobToFile(result.blob, result.name)])}
+            aria-label={t("share.shareFile", { name: result.name })}
+            className="mr-1.5 active:scale-95"
+          >
+            <Share2 aria-hidden />
+            <span className="hidden sm:inline">{t("share.button")}</span>
+          </Button>
         )}
         {status === "done" && result && (
           <Button

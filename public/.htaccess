@@ -1,0 +1,17 @@
+# Mèo Đen Convert — Hostinger (Apache / LiteSpeed) settings.
+
+<IfModule mod_mime.c>
+  AddType application/wasm .wasm
+  AddType application/manifest+json .webmanifest
+</IfModule>
+
+<IfModule mod_headers.c>
+  # The service worker, the page and the manifest must always be revalidated,
+  # otherwise browsers (or the host's cache) keep users on an old version.
+  <FilesMatch "^(sw\.js|index\.html|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "no-referrer"
+</IfModule>

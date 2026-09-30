@@ -32,7 +32,15 @@ export function PwaToasts() {
       {needRefresh && (
         <Toast icon={<RefreshCw className="size-4 text-brand" aria-hidden />} onClose={() => setNeedRefresh(false)}>
           <span className="flex-1">{t("pwa.update")}</span>
-          <Button size="sm" onClick={() => updateServiceWorker(true)}>
+          <Button
+            size="sm"
+            onClick={() => {
+              // The plugin only reloads when this page load started under a service worker; on a
+              // first visit the new worker takes over silently, so reload on the switch ourselves.
+              navigator.serviceWorker?.addEventListener("controllerchange", () => window.location.reload(), { once: true })
+              void updateServiceWorker(true)
+            }}
+          >
             {t("pwa.reload")}
           </Button>
         </Toast>

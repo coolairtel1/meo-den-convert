@@ -1,12 +1,14 @@
 import QRCodeStyling from "qr-code-styling"
-import { AlertTriangle, CheckCircle2, ClipboardCopy, Download, Loader2, ScanLine, XCircle } from "lucide-react"
+import { AlertTriangle, CheckCircle2, ClipboardCopy, Download, Loader2, ScanLine, Share2, XCircle } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { SegmentedControl } from "@/components/motion/SegmentedControl"
 import { useMagnetic } from "@/components/motion/useMagnetic"
 import { Button } from "@/components/ui/button"
 import { useCatStore } from "@/features/mascot/catStore"
+import { shareWithCat } from "@/features/share/shareWithCat"
 import { downloadUrl } from "@/lib/download"
+import { blobToFile, canShareFiles } from "@/lib/share"
 import { blobToDataUrl } from "@/lib/image"
 import { gsap, prefersReducedMotion } from "@/lib/motion/gsap"
 import { contrastIssue } from "@/lib/qr/contrast"
@@ -37,7 +39,9 @@ export function QrPreview({ payload, style }: { payload: string; style: QrStyle 
   const qrRef = useRef<QRCodeStyling | null>(null)
   const [overflow, setOverflow] = useState(false)
   const [scan, setScan] = useState<ScanState>("idle")
-  const [busy, setBusy] = useState<"download" | "copy" | null>(null)
+  const [busy, setBusy] = useState<"download" | "copy" | "share" | null>(null)
+  /** Last rendered share file, so a retry after Safari's "needs a tap" error shares instantly. */
+  const shareCache = useRef<{ key: string; file: File } | null>(null)
   const empty = payload === ""
 
   // Live preview: one SVG instance, updated in place.
@@ -114,6 +118,22 @@ export function QrPreview({ payload, style }: { payload: string; style: QrStyle 
     }
   }
 
+  const onShare = async () => {
+    const key = JSON.stringify([payload, style, exportSize, exportFormat, kind])
+    setBusy("share")
+    try {
+      let file = shareCache.current?.key === key ? shareCache.current.file : null
+      if (!file) {
+        const blob = await renderQrBlob(style, payload, exportSize, exportFormat)
+        file = blobToFile(blob, `meoden-qr-${kind}.${EXT[exportFormat]}`)
+        shareCache.current = { key, file }
+      }
+      if ((await shareWithCat([file])) === "shared") await showOff()
+    } finally {
+      setBusy(null)
+    }
+  }
+
   const onCopy = async () => {
     setBusy("copy")
     try {
@@ -182,6 +202,19 @@ export function QrPreview({ payload, style }: { payload: string; style: QrStyle 
             {busy === "download" ? <Loader2 className="animate-spin" aria-hidden /> : <Download aria-hidden />}
             {t("qr.export.download")}
           </Button>
+          {canShareFiles() && (
+            <Button
+              size="lg"
+              variant="outline"
+              disabled={!canExport}
+              onClick={onShare}
+              aria-label={t("share.button")}
+              title={t("share.button")}
+              className="active:scale-95"
+            >
+              {busy === "share" ? <Loader2 className="animate-spin" aria-hidden /> : <Share2 aria-hidden />}
+            </Button>
+          )}
           {"ClipboardItem" in window && (
             <Button
               size="lg"

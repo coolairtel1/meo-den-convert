@@ -1,10 +1,12 @@
-import { FileArchive, FileText, Loader2, PawPrint, Trash2 } from "lucide-react"
+import { FileArchive, FileText, Loader2, PawPrint, Share2, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useMagnetic } from "@/components/motion/useMagnetic"
 import { Button } from "@/components/ui/button"
 import { useCatStore } from "@/features/mascot/catStore"
+import { shareWithCat } from "@/features/share/shareWithCat"
 import { downloadUrl } from "@/lib/download"
+import { blobToFile, canShareFiles } from "@/lib/share"
 import { formatBytes } from "@/lib/format"
 import { zipFiles } from "@/lib/zip"
 import { gsap, prefersReducedMotion } from "@/lib/motion/gsap"
@@ -111,6 +113,17 @@ export function ConverterPage() {
                 >
                   <FileText aria-hidden />
                   {t("converter.pdf.button")}
+                </Button>
+              )}
+              {done.length >= 2 && canShareFiles() && (
+                <Button
+                  variant="outline"
+                  onClick={() => shareWithCat(done.map((it) => blobToFile(it.result!.blob, it.result!.name)))}
+                  disabled={busy}
+                  className="active:scale-95"
+                >
+                  <Share2 aria-hidden />
+                  {t("share.shareAll")}
                 </Button>
               )}
               {done.length >= 2 && (

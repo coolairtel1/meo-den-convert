@@ -6,6 +6,7 @@ import { ConverterPage } from "@/features/converter/ConverterPage"
 import { BlackCat } from "@/features/mascot/BlackCat"
 import { MoodPlayground } from "@/features/mascot/MoodPlayground"
 import { PwaToasts } from "@/features/pwa/PwaToasts"
+import { useSharedFiles } from "@/features/converter/useSharedFiles"
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/motion/gsap"
 import { useNavStore } from "@/stores/nav"
 import { applyThemeClass, useThemeStore } from "@/stores/theme"
@@ -24,6 +25,7 @@ export default function App() {
   const shellRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => applyThemeClass(resolved), [resolved])
+  useSharedFiles()
 
   // Entrance: page card and cat rise in.
   useGSAP(
