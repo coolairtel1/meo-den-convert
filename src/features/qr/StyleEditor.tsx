@@ -235,11 +235,11 @@ function PresetsSection() {
 
   return (
     <Section title={t("qr.sections.presets")} icon={<Sparkles className="size-4 text-brand" aria-hidden />}>
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">{BUILT_IN_PRESETS.map(tile)}</div>
+      <div className="grid grid-cols-4 gap-2">{BUILT_IN_PRESETS.map(tile)}</div>
       {userPresets.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground">{t("qr.presets.saved")}</p>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">{userPresets.map(tile)}</div>
+          <div className="grid grid-cols-4 gap-2">{userPresets.map(tile)}</div>
         </div>
       )}
       <form

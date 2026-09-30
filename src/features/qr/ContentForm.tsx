@@ -1,6 +1,7 @@
 import {
   CalendarDays,
   Contact,
+  Landmark,
   Link2,
   Loader2,
   LocateFixed,
@@ -22,10 +23,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { QR_KINDS, type QrFields, type QrKind, type WifiSecurity } from "@/lib/qr/content"
 import { gsap, prefersReducedMotion } from "@/lib/motion/gsap"
 import { cn } from "@/lib/utils"
+import { BankForm } from "./BankForm"
 import { useQrStore } from "./store"
 
 const ICONS: Record<QrKind, LucideIcon> = {
   url: Link2,
+  bank: Landmark,
   text: Type,
   wifi: Wifi,
   vcard: Contact,
@@ -50,6 +53,7 @@ interface FieldDef {
 // Plain text/area fields per kind; WiFi security and geo "locate me" get custom controls below.
 const FORMS: Record<QrKind, FieldDef[]> = {
   url: [{ key: "url", type: "url", wide: true, placeholder: "https://meoden.app", autoComplete: "url" }],
+  bank: [], // custom form: BankForm
   text: [{ key: "text", multiline: true, wide: true }],
   wifi: [{ key: "ssid" }, { key: "password" }],
   vcard: [
@@ -103,7 +107,10 @@ export function ContentForm() {
     gsap.fromTo(el.querySelector("svg"), { rotation: -20, scale: 0.6 }, { rotation: 0, scale: 1, duration: 0.5, ease: "back.out(3)" })
     requestAnimationFrame(() => {
       const items = formRef.current?.querySelectorAll("[data-field]")
-      if (items?.length) gsap.from(items, { y: 10, opacity: 0, duration: 0.3, stagger: 0.035, ease: "power2.out" })
+      // clearProps: a leftover transform makes each field its own stacking context, which would
+      // paint later fields over dropdowns (e.g. the bank picker's list).
+      if (items?.length)
+        gsap.from(items, { y: 10, opacity: 0, duration: 0.3, stagger: 0.035, ease: "power2.out", clearProps: "transform,opacity" })
     })
   }
 
@@ -167,6 +174,7 @@ export function ContentForm() {
           )
         })}
 
+        {kind === "bank" && <BankForm fields={fields.bank} update={(p) => setField("bank", p)} />}
         {kind === "wifi" && <WifiExtras fields={fields.wifi} update={update} />}
         {kind === "geo" && <LocateButton update={update} />}
       </div>

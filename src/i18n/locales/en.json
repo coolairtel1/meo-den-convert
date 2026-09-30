@@ -95,6 +95,7 @@
     "subtitle": "Links, WiFi, contact cards, SMS… pick colors, dot styles, add a logo — all on your device.",
     "kinds": {
       "url": "Link",
+      "bank": "Bank transfer",
       "text": "Text",
       "wifi": "WiFi",
       "vcard": "Contact",
@@ -164,6 +165,22 @@
         "start": "Starts",
         "end": "Ends",
         "description": "Description"
+      },
+      "bank": {
+        "bank": "Bank",
+        "bankPlaceholder": "Search banks (name or code)…",
+        "noBank": "No bank found",
+        "account": "Account number",
+        "amount": "Amount (optional)",
+        "amountShort": "Amount",
+        "amountHint": "Leave empty to let the payer enter the amount.",
+        "anyAmount": "Payer enters it",
+        "message": "Transfer note",
+        "messageShort": "Note",
+        "messagePlaceholder": "e.g. Lunch money",
+        "willSend": "Will be sent (diacritics removed)",
+        "summary": "Scanning this code pays",
+        "warning": "Double-check the account number. Banking apps show the recipient's name so the payer can confirm before sending."
       }
     },
     "style": {
@@ -220,7 +237,8 @@
       "namePlaceholder": "Name the current look…",
       "saved": "Your presets",
       "delete": "Delete preset {{name}}",
-      "apply": "Apply preset {{name}}"
+      "apply": "Apply preset {{name}}",
+      "vietqr": "VietQR"
     },
     "preview": {
       "label": "QR code preview",

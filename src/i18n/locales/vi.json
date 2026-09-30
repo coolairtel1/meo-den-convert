@@ -92,6 +92,7 @@
     "subtitle": "Link, WiFi, danh thiếp, SMS… đổi màu, kiểu chấm, chèn logo — tất cả ngay trên máy bạn.",
     "kinds": {
       "url": "Link",
+      "bank": "Chuyển khoản",
       "text": "Văn bản",
       "wifi": "WiFi",
       "vcard": "Danh thiếp",
@@ -161,6 +162,22 @@
         "start": "Bắt đầu",
         "end": "Kết thúc",
         "description": "Mô tả"
+      },
+      "bank": {
+        "bank": "Ngân hàng",
+        "bankPlaceholder": "Tìm ngân hàng (tên hoặc mã)…",
+        "noBank": "Không tìm thấy ngân hàng",
+        "account": "Số tài khoản",
+        "amount": "Số tiền (tuỳ chọn)",
+        "amountShort": "Số tiền",
+        "amountHint": "Để trống thì người chuyển tự nhập số tiền.",
+        "anyAmount": "Người chuyển tự nhập",
+        "message": "Nội dung chuyển khoản",
+        "messageShort": "Nội dung",
+        "messagePlaceholder": "Ví dụ: Trả tiền ăn trưa",
+        "willSend": "Sẽ gửi (đã bỏ dấu)",
+        "summary": "Người quét mã sẽ chuyển tới",
+        "warning": "Kiểm tra kỹ số tài khoản. App ngân hàng sẽ hiện tên người nhận để người chuyển đối chiếu trước khi xác nhận."
       }
     },
     "style": {
@@ -217,7 +234,8 @@
       "namePlaceholder": "Đặt tên cho mẫu hiện tại…",
       "saved": "Mẫu của bạn",
       "delete": "Xoá mẫu {{name}}",
-      "apply": "Dùng mẫu {{name}}"
+      "apply": "Dùng mẫu {{name}}",
+      "vietqr": "VietQR"
     },
     "preview": {
       "label": "Xem trước mã QR",

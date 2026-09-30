@@ -27,6 +27,22 @@ export const BUILT_IN_PRESETS: QrPreset[] = [
     },
   },
   {
+    id: "vietqr",
+    name: "qr.presets.vietqr",
+    builtIn: true,
+    style: {
+      dotType: "rounded",
+      dotColor: "#00529c",
+      gradient: false,
+      cornerSquareType: "extra-rounded",
+      cornerSquareColor: "#da251d",
+      cornerDotType: "dot",
+      cornerDotColor: "#da251d",
+      bgColor: "#ffffff",
+      bgTransparent: false,
+    },
+  },
+  {
     id: "classic",
     name: "qr.presets.classic",
     builtIn: true,

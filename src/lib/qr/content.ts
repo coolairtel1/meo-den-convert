@@ -1,13 +1,16 @@
 /** Payload builders for the QR content types. Each returns "" while required fields are missing. */
 
-export type QrKind = "url" | "text" | "wifi" | "vcard" | "email" | "sms" | "phone" | "geo" | "event"
+import { buildVietQr, type VietQrFields } from "./vietqr"
 
-export const QR_KINDS: QrKind[] = ["url", "text", "wifi", "vcard", "email", "sms", "phone", "geo", "event"]
+export type QrKind = "url" | "bank" | "text" | "wifi" | "vcard" | "email" | "sms" | "phone" | "geo" | "event"
+
+export const QR_KINDS: QrKind[] = ["url", "bank", "text", "wifi", "vcard", "email", "sms", "phone", "geo", "event"]
 
 export type WifiSecurity = "WPA" | "WEP" | "nopass"
 
 export interface QrFields {
   url: { url: string }
+  bank: VietQrFields
   text: { text: string }
   wifi: { ssid: string; password: string; security: WifiSecurity; hidden: boolean }
   vcard: {
@@ -30,6 +33,7 @@ export interface QrFields {
 
 export const EMPTY_FIELDS: QrFields = {
   url: { url: "" },
+  bank: { bin: "", account: "", amount: "", message: "" },
   text: { text: "" },
   wifi: { ssid: "", password: "", security: "WPA", hidden: false },
   vcard: { firstName: "", lastName: "", org: "", title: "", phone: "", email: "", url: "", address: "", note: "" },
@@ -63,6 +67,9 @@ export function buildPayload<K extends QrKind>(kind: K, fields: QrFields[K]): st
       if (!url) return ""
       return /^[a-z][a-z\d+.-]*:/i.test(url) ? url : `https://${url}`
     }
+    case "bank":
+      return buildVietQr(fields as QrFields["bank"])
+
     case "text":
       return (fields as QrFields["text"]).text
 

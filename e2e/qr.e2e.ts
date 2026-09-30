@@ -33,3 +33,37 @@ test("blocks export when the content is too long for a QR code", async ({ page }
   await expect(page.getByText("Nội dung quá dài cho một mã QR — rút gọn bớt nhé.")).toBeVisible()
   await expect(page.getByRole("button", { name: "Tải về" })).toBeDisabled()
 })
+
+test("makes a VietQR bank-transfer code identical to the official generator", async ({ page }) => {
+  await page.getByRole("radio", { name: "Chuyển khoản" }).click()
+  const bank = page.getByRole("combobox", { name: "Ngân hàng" })
+  await bank.fill("vietcom")
+  await page.getByRole("option", { name: /Vietcombank/ }).click()
+  await expect(bank).toHaveValue(/^Vietcombank — /)
+  await page.getByLabel("Số tài khoản").fill("1234 567 890")
+  await page.getByLabel("Số tiền (tuỳ chọn)").fill("150000")
+  await expect(page.getByLabel("Số tiền (tuỳ chọn)")).toHaveValue("150.000")
+  await page.getByLabel("Nội dung chuyển khoản").fill("Trả tiền ăn trưa")
+  await expect(page.getByText("Tra tien an trua").first()).toBeVisible()
+  await expect(page.getByText("150.000 ₫")).toBeVisible()
+  await expect(page.getByText("Quét thử OK — nội dung chuẩn")).toBeVisible()
+
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Tải về" }).click()])
+  const png = (await downloadBytes(dl)).toString("base64")
+  await page.addScriptTag({ path: "node_modules/jsqr/dist/jsQR.js" })
+  const decoded = await page.evaluate(async (b64) => {
+    const bmp = await createImageBitmap(await (await fetch(`data:image/png;base64,${b64}`)).blob())
+    const c = new OffscreenCanvas(bmp.width, bmp.height)
+    const x = c.getContext("2d")!
+    x.fillStyle = "#fff"
+    x.fillRect(0, 0, bmp.width, bmp.height)
+    x.drawImage(bmp, 0, 0)
+    const d = x.getImageData(0, 0, bmp.width, bmp.height)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (window as any).jsQR(d.data, d.width, d.height)?.data
+  }, png)
+  // Decoded from img.vietqr.io for the same account/amount/note.
+  expect(decoded).toBe(
+    "00020101021238540010A00000072701240006970436011012345678900208QRIBFTTA530370454061500005802VN62200816Tra tien an trua630471F1",
+  )
+})
