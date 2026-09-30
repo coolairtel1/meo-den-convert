@@ -12,3 +12,6 @@ export function formatBytes(bytes: number, locale?: string): string {
 
 /** "photo.HEIC" → "photo.jpg" */
 export const replaceExtension = (name: string, ext: string) => `${name.replace(/\.[^./\\]+$/, "") || name}.${ext}`
+
+/** Size-budget labels use decimal units, matching how upload limits are usually written: 500 → "500 KB", 2000 → "2 MB". */
+export const kbLabel = (kb: number) => (kb >= 1000 ? `${kb / 1000} MB` : `${kb} KB`)

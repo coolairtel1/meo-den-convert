@@ -5,8 +5,10 @@ import { EXTENSION, HAS_ALPHA, isDecodable, LOSSY } from "@/lib/codecs/support"
 import { rasterizeSvg } from "@/lib/codecs/svg"
 import { ConvertError, parseConvertError, type ConvertErrorCode, type InputFormat, type OutputFormat } from "@/lib/codecs/types"
 import { detectFormat, SNIFF_BYTES } from "@/lib/engine/detect"
+import { targetApplies, type TargetSizeOptions } from "@/lib/engine/target"
 import { convertInPool } from "@/lib/engine/pool"
 import { replaceExtension } from "@/lib/format"
+import type { Orientation, PageSize } from "@/lib/pdf"
 import { safeStorage } from "@/lib/storage"
 import { useCatStore } from "@/features/mascot/catStore"
 
@@ -19,8 +21,25 @@ export interface ConvertItem {
   inputFormat?: InputFormat
   status: ItemStatus
   progress: number
-  result?: { blob: Blob; url: string; name: string; width: number; height: number; settingsKey: string }
+  result?: {
+    blob: Blob
+    url: string
+    name: string
+    width: number
+    height: number
+    settingsKey: string
+    fit?: { targetBytes: number; reached: boolean; quality: number | null }
+  }
   error?: { code: ConvertErrorCode; detail: string }
+}
+
+export type PdfQuality = "high" | "medium" | "small"
+
+export interface PdfSettings {
+  pageSize: PageSize
+  orientation: Orientation
+  marginMm: number
+  quality: PdfQuality
 }
 
 export interface ConvertSettings {
@@ -28,6 +47,9 @@ export interface ConvertSettings {
   quality: number
   background: string
   resize: ResizeOptions
+  target: TargetSizeOptions
+  /** Not part of settingsKey: PDF export re-renders from the originals. */
+  pdf: PdfSettings
 }
 
 interface ConverterState {
@@ -39,6 +61,10 @@ interface ConverterState {
   clear: () => void
   setSettings: (patch: Partial<ConvertSettings>) => void
   setResize: (patch: Partial<ResizeOptions>) => void
+  setTarget: (patch: Partial<TargetSizeOptions>) => void
+  setPdf: (patch: Partial<PdfSettings>) => void
+  /** Moves an item to `toIndex` (page order for PDF export). */
+  moveItem: (id: string, toIndex: number) => void
   convertAll: () => Promise<void>
   convertOne: (id: string) => Promise<void>
 }
@@ -51,6 +77,7 @@ export const settingsKey = (s: ConvertSettings) =>
     HAS_ALPHA[s.format] ? "" : s.background,
     s.resize.mode,
     s.resize.mode === "max" ? s.resize.max : s.resize.mode === "percent" ? s.resize.percent : "",
+    targetApplies(s) ? s.target.kb : "",
   ].join("|")
 
 /**
@@ -107,6 +134,7 @@ export const useConverterStore = create<ConverterState>()(
               width: res.width,
               height: res.height,
               settingsKey: key,
+              fit: res.fit,
             },
           })
           return true
@@ -137,7 +165,14 @@ export const useConverterStore = create<ConverterState>()(
 
       return {
         items: [],
-        settings: { format: "jpeg", quality: 85, background: "#ffffff", resize: { mode: "none", max: 1920, percent: 50 } },
+        settings: {
+          format: "jpeg",
+          quality: 85,
+          background: "#ffffff",
+          resize: { mode: "none", max: 1920, percent: 50 },
+          target: { enabled: false, kb: 500 },
+          pdf: { pageSize: "a4", orientation: "auto", marginMm: 10, quality: "medium" },
+        },
         busy: false,
 
         addFiles: (files) => {
@@ -177,6 +212,18 @@ export const useConverterStore = create<ConverterState>()(
 
         setSettings: (p) => set((s) => ({ settings: { ...s.settings, ...p } })),
         setResize: (p) => set((s) => ({ settings: { ...s.settings, resize: { ...s.settings.resize, ...p } } })),
+        setTarget: (p) => set((s) => ({ settings: { ...s.settings, target: { ...s.settings.target, ...p } } })),
+        setPdf: (p) => set((s) => ({ settings: { ...s.settings, pdf: { ...s.settings.pdf, ...p } } })),
+
+        moveItem: (id, toIndex) =>
+          set((s) => {
+            const from = s.items.findIndex((it) => it.id === id)
+            const to = Math.max(0, Math.min(s.items.length - 1, toIndex))
+            if (from < 0 || from === to) return s
+            const items = [...s.items]
+            items.splice(to, 0, ...items.splice(from, 1))
+            return { items }
+          }),
 
         convertAll: () => {
           const key = settingsKey(get().settings)
@@ -198,7 +245,13 @@ export const useConverterStore = create<ConverterState>()(
         const saved = (persisted as { settings?: Partial<ConvertSettings> } | undefined)?.settings ?? {}
         return {
           ...current,
-          settings: { ...current.settings, ...saved, resize: { ...current.settings.resize, ...saved.resize } },
+          settings: {
+            ...current.settings,
+            ...saved,
+            resize: { ...current.settings.resize, ...saved.resize },
+            target: { ...current.settings.target, ...saved.target },
+            pdf: { ...current.settings.pdf, ...saved.pdf },
+          },
         }
       },
     },

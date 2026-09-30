@@ -88,6 +88,46 @@
     },
     "notes": {
       "gifFirstFrame": "Animated GIF: only the first frame is used."
+    },
+    "target": {
+      "title": "Limit file size",
+      "custom": "Max size (KB)",
+      "hint": "Keeps your quality if it already fits; otherwise lowers it (not below 40), and only then shrinks the image.",
+      "hintLossless": "This format has no quality to lower, so the image gets smaller instead. JPG/WebP usually look better at the same size.",
+      "ico": "ICO bundles several icon sizes, so a size limit doesn't apply.",
+      "reached": "✓ Fits the {{target}} target",
+      "quality": " · quality {{q}}",
+      "missed": "Missed {{target}} — smallest possible was {{size}}"
+    },
+    "pdf": {
+      "button": "Combine into PDF",
+      "orderHint": "One image per page, in list order. Drag the ⋮⋮ grip on the left (or focus it and use ↑ ↓) to reorder.",
+      "reorder": "Page {{page}}/{{total}} — drag or use arrow keys to reorder",
+      "reorderHint": "Drag to reorder pages",
+      "pageSize": "Paper size",
+      "fit": "Fit image",
+      "orientation": "Orientation",
+      "auto": "Auto",
+      "portrait": "Portrait",
+      "landscape": "Landscape",
+      "margin": "Margin",
+      "noMargin": "None",
+      "quality": "Image quality",
+      "high": "High",
+      "medium": "Medium",
+      "small": "Small",
+      "qualityHint_high": "Original resolution — sharpest, largest file.",
+      "qualityHint_medium": "~200 dpi on A4 — crisp documents, moderate size.",
+      "qualityHint_small": "Smallest — good for email or online forms.",
+      "create_one": "Create PDF ({{count}} page)",
+      "create_other": "Create PDF ({{count}} pages)",
+      "creating": "Creating PDF…",
+      "summary_one": "Created a {{count}}-page PDF · {{size}}",
+      "summary_other": "Created a {{count}}-page PDF · {{size}}",
+      "done_one": "Made a {{count}}-page PDF!",
+      "done_other": "Combined {{count}} pages into a PDF!",
+      "failed": "Couldn't create the PDF 😿",
+      "skipped": "Skipped (unreadable): {{files}}"
     }
   },
   "qr": {

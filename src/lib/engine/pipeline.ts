@@ -2,10 +2,13 @@ import { getDecoder, getEncoder } from "@/lib/codecs/registry"
 import { resizeImage, targetSize, type ResizeOptions } from "@/lib/codecs/resize"
 import { ConvertError, type EncodeOptions, type InputFormat, type OutputFormat } from "@/lib/codecs/types"
 import { detectFormat, SNIFF_BYTES } from "./detect"
+import { BITS_PER_PIXEL, fitToSize } from "./fitSize"
+import { targetApplies, type TargetSizeOptions } from "./target"
 
 export interface ConvertOptions extends EncodeOptions {
   format: OutputFormat
   resize: ResizeOptions
+  target: TargetSizeOptions
 }
 
 export interface ConvertResult {
@@ -13,11 +16,14 @@ export interface ConvertResult {
   width: number
   height: number
   inputFormat: InputFormat
+  /** Present when a size budget was applied. */
+  fit?: { targetBytes: number; reached: boolean; quality: number | null }
 }
+
 
 export type ProgressFn = (fraction: number) => void
 
-/** decode → (resize) → encode. Runs inside a worker. */
+/** decode → (resize) → encode, or search for the best encode under a size budget. Runs inside a worker. */
 export async function convertImage(file: Blob, options: ConvertOptions, onProgress?: ProgressFn): Promise<ConvertResult> {
   const head = new Uint8Array(await file.slice(0, SNIFF_BYTES).arrayBuffer())
   const inputFormat = detectFormat(head)
@@ -44,14 +50,32 @@ export async function convertImage(file: Blob, options: ConvertOptions, onProgre
   }
 
   const encoder = getEncoder(options.format)
-  const { width, height } = image
   let bytes: ArrayBuffer
+  let fit: ConvertResult["fit"]
   try {
-    bytes = await encoder.encode(image, options)
+    if (targetApplies(options)) {
+      const targetBytes = options.target.kb * 1000
+      const res = await fitToSize({
+        image,
+        targetBytes,
+        lossy: encoder.lossy,
+        maxQuality: options.quality,
+        bitsPerPixel: BITS_PER_PIXEL[options.format] ?? 8,
+        encode: (img, quality) => encoder.encode(img, { ...options, quality }),
+        resize: resizeImage,
+        // Each search step nudges the bar forward (no finer signal from the encoders).
+        onStep: (step) => onProgress?.(Math.min(0.95, 0.55 + step * 0.05)),
+      })
+      bytes = res.bytes
+      image = res.image
+      fit = { targetBytes, reached: res.reached, quality: res.quality }
+    } else {
+      bytes = await encoder.encode(image, options)
+    }
   } catch (e) {
     throw new ConvertError("encode", e instanceof Error ? e.message : String(e))
   }
   onProgress?.(1)
 
-  return { blob: new Blob([bytes], { type: encoder.mime }), width, height, inputFormat }
+  return { blob: new Blob([bytes], { type: encoder.mime }), width: image.width, height: image.height, inputFormat, fit }
 }

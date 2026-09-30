@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { formatBytes, replaceExtension } from "./format"
+import { formatBytes, kbLabel, replaceExtension } from "./format"
 
 describe("formatBytes", () => {
   it("scales units", () => {
@@ -14,5 +14,13 @@ describe("replaceExtension", () => {
     expect(replaceExtension("IMG_0001.HEIC", "jpg")).toBe("IMG_0001.jpg")
     expect(replaceExtension("my.photo.png", "webp")).toBe("my.photo.webp")
     expect(replaceExtension("noext", "png")).toBe("noext.png")
+  })
+})
+
+describe("kbLabel", () => {
+  it("uses decimal KB/MB like upload limits do", () => {
+    expect(kbLabel(500)).toBe("500 KB")
+    expect(kbLabel(2000)).toBe("2 MB")
+    expect(kbLabel(1500)).toBe("1.5 MB")
   })
 })

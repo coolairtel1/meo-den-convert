@@ -59,3 +59,14 @@ test("builds a multi-size ICO", async ({ page }) => {
   expect(ico.readUInt16LE(2)).toBe(1) // icon
   expect(ico.readUInt16LE(4)).toBe(7) // 16…256 px (source is 400 px wide)
 })
+
+test("fits a file under a size budget", async ({ page }) => {
+  await addFiles(page, "photo.jpg")
+  await page.getByRole("radio", { name: "JPG" }).click()
+  await page.getByRole("switch", { name: "Giới hạn dung lượng file" }).click()
+  await page.getByLabel("Dung lượng tối đa (KB)").fill("50")
+  await page.getByRole("button", { name: "Chuyển đổi 1 ảnh" }).click()
+  await expect(page.getByText(/✓ Vừa mục tiêu 50 KB · chất lượng \d+/)).toBeVisible({ timeout: 30_000 })
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Tải về photo.jpg" }).click()])
+  expect((await downloadBytes(dl)).length).toBeLessThanOrEqual(50_000)
+})

@@ -1,4 +1,4 @@
-import { FileArchive, Loader2, PawPrint, Trash2 } from "lucide-react"
+import { FileArchive, FileText, Loader2, PawPrint, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useMagnetic } from "@/components/motion/useMagnetic"
@@ -10,6 +10,8 @@ import { zipFiles } from "@/lib/zip"
 import { gsap, prefersReducedMotion } from "@/lib/motion/gsap"
 import { Dropzone } from "./Dropzone"
 import { FileList } from "./FileList"
+import { pdfEligible } from "./makePdf"
+import { PdfPanel } from "./PdfPanel"
 import { SettingsPanel } from "./SettingsPanel"
 import { needsConversion, settingsKey, useConverterStore } from "./store"
 
@@ -25,6 +27,8 @@ export function ConverterPage() {
   const clear = useConverterStore((s) => s.clear)
   const listWrapRef = useRef<HTMLDivElement>(null)
   const [zipping, setZipping] = useState(false)
+  const [pdfOpen, setPdfOpen] = useState(false)
+  const pdfPages = items.filter(pdfEligible).length
   const convertRef = useMagnetic<HTMLButtonElement>()
 
   const key = settingsKey(settings)
@@ -98,6 +102,17 @@ export function ConverterPage() {
               )}
             </p>
             <div className="flex flex-wrap gap-2">
+              {pdfPages >= 1 && (
+                <Button
+                  variant={pdfOpen ? "secondary" : "outline"}
+                  aria-expanded={pdfOpen}
+                  onClick={() => setPdfOpen((o) => !o)}
+                  className="active:scale-95"
+                >
+                  <FileText aria-hidden />
+                  {t("converter.pdf.button")}
+                </Button>
+              )}
               {done.length >= 2 && (
                 <Button variant="outline" onClick={onZip} disabled={busy || zipping} className="active:scale-95">
                   {zipping ? <Loader2 className="animate-spin" aria-hidden /> : <FileArchive aria-hidden />}
@@ -118,6 +133,7 @@ export function ConverterPage() {
               </Button>
             </div>
           </div>
+          {pdfOpen && pdfPages >= 1 && <PdfPanel />}
           <FileList items={items} currentKey={key} />
         </div>
       )}

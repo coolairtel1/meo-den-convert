@@ -1,24 +1,30 @@
-import { AlertCircle, Check, Download, RotateCcw, X } from "lucide-react"
+import { AlertCircle, Check, Download, GripVertical, RotateCcw, X } from "lucide-react"
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { FORMAT_LABEL } from "@/lib/codecs/support"
 import { downloadUrl } from "@/lib/download"
-import { formatBytes } from "@/lib/format"
-import { gsap, prefersReducedMotion, useGSAP } from "@/lib/motion/gsap"
+import { formatBytes, kbLabel } from "@/lib/format"
+import { Draggable, gsap, prefersReducedMotion, useGSAP } from "@/lib/motion/gsap"
 import { cn } from "@/lib/utils"
 import type { ConvertItem } from "./store"
 
 interface FileCardProps {
   item: ConvertItem
+  index: number
+  total: number
   currentKey: string
   onRemove: (id: string, el: HTMLElement) => void
   onRetry: (id: string) => void
+  /** Present when the list can be reordered (page order for PDF). */
+  onDrop?: (id: string, el: HTMLElement) => void
+  onNudge?: (id: string, delta: number) => void
 }
 
-export function FileCard({ item, currentKey, onRemove, onRetry }: FileCardProps) {
+export function FileCard({ item, index, total, currentKey, onRemove, onRetry, onDrop, onNudge }: FileCardProps) {
   const { t, i18n } = useTranslation()
   const ref = useRef<HTMLLIElement>(null)
+  const handleRef = useRef<HTMLButtonElement>(null)
   const prevStatus = useRef(item.status)
   // Remember which src failed (e.g. HEIC preview in Chrome) so the converted result can still show.
   const [failedSrc, setFailedSrc] = useState<string>()
@@ -66,6 +72,29 @@ export function FileCard({ item, currentKey, onRemove, onRetry }: FileCardProps)
     { scope: ref, dependencies: [status, item.progress] },
   )
 
+  // Drag the grip to reorder; the list works out the new slot on release.
+  useGSAP(
+    () => {
+      if (!onDrop || !ref.current || !handleRef.current) return
+      const el = ref.current
+      Draggable.create(el, {
+        type: "y",
+        trigger: handleRef.current,
+        zIndexBoost: true,
+        onPress: () => {
+          el.dataset.dragging = "true"
+          if (!prefersReducedMotion()) gsap.to(el, { scale: 1.02, duration: 0.15 })
+        },
+        onRelease: () => {
+          delete el.dataset.dragging
+          gsap.to(el, { scale: 1, duration: 0.15 })
+          onDrop(item.id, el)
+        },
+      })
+    },
+    { scope: ref, dependencies: [!!onDrop] },
+  )
+
   const thumbSrc = result?.url ?? item.previewUrl
   const stale = status === "done" && result?.settingsKey !== currentKey
   const outFormat = result ? (result.name.split(".").pop() ?? "") : ""
@@ -82,10 +111,32 @@ export function FileCard({ item, currentKey, onRemove, onRetry }: FileCardProps)
       ref={ref}
       data-item-id={item.id}
       className={cn(
-        "relative flex items-center gap-3 overflow-hidden rounded-2xl border bg-card p-3 pr-10 sm:gap-4",
+        "relative flex items-center gap-3 overflow-hidden rounded-2xl border bg-card p-3 pr-10 sm:gap-4 data-dragging:shadow-xl data-dragging:ring-2 data-dragging:ring-brand/40",
+        onDrop && "pl-1.5",
         status === "error" && "border-destructive/40",
       )}
     >
+      {onDrop && (
+        <button
+          ref={handleRef}
+          type="button"
+          aria-label={t("converter.pdf.reorder", { page: index + 1, total })}
+          title={t("converter.pdf.reorderHint")}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowUp" && index > 0) {
+              e.preventDefault()
+              onNudge?.(item.id, -1)
+            } else if (e.key === "ArrowDown" && index < total - 1) {
+              e.preventDefault()
+              onNudge?.(item.id, 1)
+            }
+          }}
+          className="grid h-12 w-5 shrink-0 cursor-grab touch-none place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:cursor-grabbing"
+        >
+          <GripVertical className="size-4" aria-hidden />
+        </button>
+      )}
+
       {/* thumbnail on a checkerboard so transparency is visible */}
       <div className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-[conic-gradient(var(--muted)_25%,transparent_0_50%,var(--muted)_0_75%,transparent_0)] bg-[length:12px_12px]">
         {failedSrc === thumbSrc ? (
@@ -140,6 +191,22 @@ export function FileCard({ item, currentKey, onRemove, onRetry }: FileCardProps)
           <p className="flex items-center gap-1 text-xs font-medium text-destructive">
             <AlertCircle className="size-3.5 shrink-0" aria-hidden />
             {errorText()}
+          </p>
+        )}
+        {status === "done" && result?.fit && (
+          <p
+            className={cn(
+              "text-xs font-medium",
+              result.fit.reached ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400",
+            )}
+          >
+            {result.fit.reached
+              ? t("converter.target.reached", { target: kbLabel(result.fit.targetBytes / 1000) }) +
+                (result.fit.quality !== null ? t("converter.target.quality", { q: result.fit.quality }) : "")
+              : t("converter.target.missed", {
+                  target: kbLabel(result.fit.targetBytes / 1000),
+                  size: formatBytes(result.blob.size, lang),
+                })}
           </p>
         )}
         {status === "done" && inputFormat === "gif" && (

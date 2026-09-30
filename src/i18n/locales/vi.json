@@ -85,6 +85,43 @@
     },
     "notes": {
       "gifFirstFrame": "GIF động: chỉ lấy khung hình đầu tiên."
+    },
+    "target": {
+      "title": "Giới hạn dung lượng file",
+      "custom": "Dung lượng tối đa (KB)",
+      "hint": "App giữ chất lượng bạn chọn nếu đã vừa, không thì hạ dần (không dưới 40), cuối cùng mới thu nhỏ ảnh.",
+      "hintLossless": "Định dạng này không có chất lượng để hạ nên app sẽ thu nhỏ ảnh. JPG/WebP thường đẹp hơn ở cùng dung lượng.",
+      "ico": "ICO gồm nhiều cỡ icon nên không áp dụng giới hạn dung lượng.",
+      "reached": "✓ Vừa mục tiêu {{target}}",
+      "quality": " · chất lượng {{q}}",
+      "missed": "Không đạt {{target}} — nhỏ nhất được {{size}}"
+    },
+    "pdf": {
+      "button": "Gộp thành PDF",
+      "orderHint": "Mỗi ảnh là một trang, theo đúng thứ tự trong danh sách. Kéo tay nắm ⋮⋮ bên trái (hoặc bấm vào nó rồi dùng phím ↑ ↓) để đổi thứ tự.",
+      "reorder": "Trang {{page}}/{{total}} — kéo hoặc dùng phím mũi tên để đổi thứ tự",
+      "reorderHint": "Kéo để đổi thứ tự trang",
+      "pageSize": "Khổ giấy",
+      "fit": "Vừa ảnh",
+      "orientation": "Chiều trang",
+      "auto": "Tự động",
+      "portrait": "Dọc",
+      "landscape": "Ngang",
+      "margin": "Lề",
+      "noMargin": "Không",
+      "quality": "Chất lượng ảnh",
+      "high": "Cao",
+      "medium": "Vừa",
+      "small": "Nhẹ",
+      "qualityHint_high": "Giữ nguyên độ phân giải — nét nhất, file nặng.",
+      "qualityHint_medium": "~200 dpi trên A4 — đọc rõ giấy tờ, file vừa phải.",
+      "qualityHint_small": "Nhẹ nhất — hợp để gửi qua mạng hoặc nộp hồ sơ online.",
+      "create_other": "Tạo PDF ({{count}} trang)",
+      "creating": "Đang tạo PDF…",
+      "summary_other": "Đã tạo PDF {{count}} trang · {{size}}",
+      "done_other": "Gộp {{count}} trang thành PDF rồi nè!",
+      "failed": "Không tạo được PDF 😿",
+      "skipped": "Bỏ qua (không đọc được): {{files}}"
     }
   },
   "qr": {

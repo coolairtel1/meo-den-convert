@@ -1,17 +1,21 @@
-import { useRef } from "react"
+import { useId, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { SegmentedControl } from "@/components/motion/SegmentedControl"
 import { useSlidingPill } from "@/components/motion/useSlidingPill"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
+import { Switch } from "@/components/ui/switch"
 import type { ResizeMode } from "@/lib/codecs/resize"
 import { FORMAT_LABEL, HAS_ALPHA, LOSSY, OUTPUT_FORMATS } from "@/lib/codecs/support"
 import type { OutputFormat } from "@/lib/codecs/types"
+import { kbLabel } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useConverterStore } from "./store"
 
 const BG_SWATCHES = ["#ffffff", "#000000", "#f5efe0", "#1d1a26"]
 const MAX_PRESETS = [800, 1280, 1920, 2560, 3840]
+const TARGET_PRESETS = [100, 200, 500, 1000, 2000]
+
 
 export function SettingsPanel() {
   const { t } = useTranslation()
@@ -60,6 +64,7 @@ export function SettingsPanel() {
       </div>
 
       <ResizeControls />
+      <TargetControls />
 
       {!HAS_ALPHA[format] && (
         <div className="space-y-2 sm:col-span-2">
@@ -216,6 +221,78 @@ function ResizeControls() {
         </div>
       )}
       <p className="text-xs text-muted-foreground">{t(`converter.resize.hint_${resize.mode}`)}</p>
+    </div>
+  )
+}
+
+/** Optional max file size: the engine lowers quality, then shrinks, until the file fits. */
+function TargetControls() {
+  const { t } = useTranslation()
+  const target = useConverterStore((s) => s.settings.target)
+  const format = useConverterStore((s) => s.settings.format)
+  const setTarget = useConverterStore((s) => s.setTarget)
+  const busy = useConverterStore((s) => s.busy)
+  const switchId = useId()
+  const ico = format === "ico"
+
+  return (
+    <div className="space-y-2 sm:col-span-2">
+      <div className="flex items-center gap-2.5">
+        <Switch
+          id={switchId}
+          checked={target.enabled && !ico}
+          disabled={busy || ico}
+          onCheckedChange={(enabled) => setTarget({ enabled })}
+        />
+        <label htmlFor={switchId} className="text-sm font-semibold">
+          {t("converter.target.title")}
+        </label>
+      </div>
+      {ico ? (
+        <p className="text-xs text-muted-foreground">{t("converter.target.ico")}</p>
+      ) : (
+        target.enabled && (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              {TARGET_PRESETS.map((kb) => (
+                <button
+                  key={kb}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setTarget({ kb })}
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs font-medium tabular-nums transition-[background-color,scale] active:scale-95",
+                    target.kb === kb ? "border-brand bg-brand/15" : "hover:bg-muted",
+                  )}
+                >
+                  {kbLabel(kb)}
+                </button>
+              ))}
+              <label className="flex items-center gap-2 text-sm">
+                <Input
+                  type="number"
+                  min={10}
+                  max={50000}
+                  step={10}
+                  inputMode="numeric"
+                  value={target.kb}
+                  disabled={busy}
+                  aria-label={t("converter.target.custom")}
+                  onChange={(e) => {
+                    const v = Math.round(Number(e.target.value))
+                    if (v > 0) setTarget({ kb: Math.min(50000, v) })
+                  }}
+                  className="h-8 w-24"
+                />
+                KB
+              </label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {LOSSY[format] ? t("converter.target.hint") : t("converter.target.hintLossless")}
+            </p>
+          </>
+        )
+      )}
     </div>
   )
 }
