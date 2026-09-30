@@ -35,7 +35,7 @@ export interface Encoder {
   encode(image: ImageData, options: EncodeOptions): Promise<ArrayBuffer>
 }
 
-export type ConvertErrorCode = "unsupported" | "decode" | "encode"
+export type ConvertErrorCode = "unsupported" | "decode" | "encode" | "ai"
 
 /**
  * Comlink only preserves `message` across the worker boundary,
@@ -50,6 +50,6 @@ export class ConvertError extends Error {
 
 export const parseConvertError = (err: unknown): { code: ConvertErrorCode; detail: string } => {
   const msg = err instanceof Error ? err.message : String(err)
-  const m = /^(unsupported|decode|encode):(.*)$/s.exec(msg)
+  const m = /^(unsupported|decode|encode|ai):(.*)$/s.exec(msg)
   return m ? { code: m[1] as ConvertErrorCode, detail: m[2] } : { code: "decode", detail: msg }
 }

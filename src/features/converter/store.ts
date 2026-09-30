@@ -7,6 +7,9 @@ import { ConvertError, parseConvertError, type ConvertErrorCode, type InputForma
 import { detectFormat, SNIFF_BYTES } from "@/lib/engine/detect"
 import { targetApplies, type TargetSizeOptions } from "@/lib/engine/target"
 import type { WatermarkJob } from "@/lib/edit/composite"
+import { removeBackground } from "@/lib/ai/client"
+import type { BgModelId } from "@/lib/ai/models"
+import type { RawInput } from "@/lib/engine/pipeline"
 import { convertInPool } from "@/lib/engine/pool"
 import { replaceExtension } from "@/lib/format"
 import { renderName, type RenameOptions } from "@/lib/edit/rename"
@@ -57,6 +60,8 @@ export interface ConvertSettings {
   /** Not part of settingsKey: PDF export re-renders from the originals. */
   pdf: PdfSettings
   watermark: WatermarkSettings
+  /** On-device AI background removal, applied before crop/resize/watermark. */
+  removeBg: { enabled: boolean; model: BgModelId }
   /** Not part of settingsKey: names are computed when showing/saving results. */
   rename: RenameOptions
 }
@@ -74,6 +79,7 @@ interface ConverterState {
   setPdf: (patch: Partial<PdfSettings>) => void
   setWatermark: (patch: Partial<WatermarkSettings>) => void
   setRename: (patch: Partial<RenameOptions>) => void
+  setRemoveBg: (patch: Partial<ConvertSettings["removeBg"]>) => void
   setEdits: (id: string, edits: Edits | undefined) => void
   /** Copies rotation/flip (not crop) to every image. */
   applyOrientationToAll: (edits: Pick<Edits, "rotate" | "flipX" | "flipY">) => void
@@ -93,6 +99,7 @@ export const settingsKey = (s: ConvertSettings) =>
     s.resize.mode === "max" ? s.resize.max : s.resize.mode === "percent" ? s.resize.percent : "",
     targetApplies(s) ? s.target.kb : "",
     watermarkKey(s.watermark),
+    s.removeBg.enabled ? `bg:${s.removeBg.model}` : "",
   ].join("|")
 
 /** The key a single item's result must carry: shared settings + that image's own edits. */
@@ -150,7 +157,7 @@ export const useConverterStore = create<ConverterState>()(
         patch(item.id, { status: "processing", progress: 0, error: undefined, result: undefined })
         try {
           // SVG needs the DOM to render, so it's rasterized here and the worker gets a PNG.
-          let source: Blob = item.file
+          let source: Blob | RawInput = item.file
           if (item.inputFormat === "svg") {
             try {
               source = await rasterizeSvg(item.file)
@@ -158,7 +165,20 @@ export const useConverterStore = create<ConverterState>()(
               throw new ConvertError("decode", e instanceof Error ? e.message : String(e))
             }
           }
-          const res = await convertInPool(source, { ...settings, edits: item.edits ?? null, watermark }, (progress) => {
+          // Background removal runs first in the AI worker; its RGBA output is handed on without a copy.
+          const bg = settings.removeBg.enabled
+          if (bg) {
+            patch(item.id, { progress: 0.05 })
+            onProgress(0.05)
+            try {
+              source = await removeBackground(source, settings.removeBg.model)
+            } catch (e) {
+              const msg = e instanceof Error ? e.message : String(e)
+              throw /^(unsupported|decode):/.test(msg) ? e : new ConvertError("ai", msg)
+            }
+          }
+          const res = await convertInPool(source, { ...settings, edits: item.edits ?? null, watermark }, (p) => {
+            const progress = bg ? 0.5 + p / 2 : p
             patch(item.id, { progress })
             onProgress(progress)
           })
@@ -217,6 +237,7 @@ export const useConverterStore = create<ConverterState>()(
           pdf: { pageSize: "a4", orientation: "auto", marginMm: 10, quality: "medium" },
           watermark: DEFAULT_WATERMARK,
           rename: { enabled: false, pattern: "{name}_{n}", start: 1 },
+          removeBg: { enabled: false, model: "quality" },
         },
         busy: false,
 
@@ -261,6 +282,7 @@ export const useConverterStore = create<ConverterState>()(
         setPdf: (p) => set((s) => ({ settings: { ...s.settings, pdf: { ...s.settings.pdf, ...p } } })),
         setWatermark: (p) => set((s) => ({ settings: { ...s.settings, watermark: { ...s.settings.watermark, ...p } } })),
         setRename: (p) => set((s) => ({ settings: { ...s.settings, rename: { ...s.settings.rename, ...p } } })),
+        setRemoveBg: (p) => set((s) => ({ settings: { ...s.settings, removeBg: { ...s.settings.removeBg, ...p } } })),
         setEdits: (id, edits) => patch(id, { edits }),
         applyOrientationToAll: ({ rotate, flipX, flipY }) =>
           set((s) => ({
@@ -305,6 +327,7 @@ export const useConverterStore = create<ConverterState>()(
             pdf: { ...current.settings.pdf, ...saved.pdf },
             watermark: { ...current.settings.watermark, ...saved.watermark },
             rename: { ...current.settings.rename, ...saved.rename },
+            removeBg: { ...current.settings.removeBg, ...saved.removeBg },
           },
         }
       },

@@ -32,18 +32,31 @@ export type ProgressFn = (fraction: number) => void
  * decode → edits (rotate/flip/crop) → resize → watermark → encode (or search for the best encode
  * under a size budget). Runs inside a worker.
  */
-export async function convertImage(file: Blob, options: ConvertOptions, onProgress?: ProgressFn): Promise<ConvertResult> {
-  const head = new Uint8Array(await file.slice(0, SNIFF_BYTES).arrayBuffer())
-  const inputFormat = detectFormat(head)
-  const decoder = getDecoder(inputFormat)
-  if (!decoder) throw new ConvertError("unsupported", inputFormat)
-  onProgress?.(0.1)
+/** Already-decoded pixels (e.g. after background removal), transferred rather than copied. */
+export interface RawInput {
+  width: number
+  height: number
+  data: ArrayBuffer
+  inputFormat: InputFormat
+}
 
+export async function convertImage(input: Blob | RawInput, options: ConvertOptions, onProgress?: ProgressFn): Promise<ConvertResult> {
   let image: ImageData
-  try {
-    image = await decoder.decode(file)
-  } catch (e) {
-    throw new ConvertError("decode", e instanceof Error ? e.message : String(e))
+  let inputFormat: InputFormat
+  if (input instanceof Blob) {
+    const head = new Uint8Array(await input.slice(0, SNIFF_BYTES).arrayBuffer())
+    inputFormat = detectFormat(head)
+    const decoder = getDecoder(inputFormat)
+    if (!decoder) throw new ConvertError("unsupported", inputFormat)
+    onProgress?.(0.1)
+    try {
+      image = await decoder.decode(input)
+    } catch (e) {
+      throw new ConvertError("decode", e instanceof Error ? e.message : String(e))
+    }
+  } else {
+    inputFormat = input.inputFormat
+    image = new ImageData(new Uint8ClampedArray(input.data), input.width, input.height)
   }
   onProgress?.(0.45)
 

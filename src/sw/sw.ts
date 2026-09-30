@@ -52,7 +52,7 @@ cleanupOutdatedCaches()
 registerRoute(new NavigationRoute(createHandlerBoundToURL("index.html")))
 // The AVIF encoder (2 × 3.5 MB) and rarely used font subsets are cached on first use instead of precached.
 registerRoute(
-  ({ url }) => /\/assets\/(avif_enc|.*-(cyrillic|greek|devanagari))/.test(url.pathname),
+  ({ url }) => /\/assets\/(avif_enc|ort-wasm|.*-(cyrillic|greek|devanagari))/.test(url.pathname),
   new CacheFirst({ cacheName: "meoden-lazy-assets", plugins: [new ExpirationPlugin({ maxEntries: 20 })] }),
 )
 

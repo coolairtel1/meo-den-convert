@@ -4,6 +4,11 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const CROSS_ORIGIN_ISOLATION = {
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Embedder-Policy': 'require-corp',
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -52,7 +57,8 @@ export default defineConfig({
         // Precache the whole app, including the HEIC/JPEG/PNG/WebP/resize WASM, so it works offline right away.
         globPatterns: ['**/*.{js,css,html,svg,png,woff2,wasm}'],
         // The AVIF encoder (2 × 3.5 MB) and rarely used font subsets are cached on first use instead.
-        globIgnores: ['**/avif_enc*', '**/*-{cyrillic,cyrillic-ext,greek,devanagari}-*.woff2'],
+        // The AI runtime (ort-wasm, ~14 MB) is cached on first use too; models are cached by the AI worker.
+        globIgnores: ['**/avif_enc*', '**/ort-wasm*', '**/*-{cyrillic,cyrillic-ext,greek,devanagari}-*.woff2'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
     }),
@@ -64,13 +70,16 @@ export default defineConfig({
   },
   // jSquash codecs locate their .wasm via import.meta.url; pre-bundling breaks that.
   optimizeDeps: {
-    exclude: ['@jsquash/jpeg', '@jsquash/png', '@jsquash/webp', '@jsquash/avif', '@jsquash/resize'],
+    exclude: ['@jsquash/jpeg', '@jsquash/png', '@jsquash/webp', '@jsquash/avif', '@jsquash/resize', 'onnxruntime-web'],
     // CommonJS/lazy deps imported from the worker: pre-bundle them up front to avoid a mid-session re-optimise.
     include: ['libheif-js/libheif-wasm/libheif.js', 'utif2', 'pako', 'gifenc', 'fflate'],
   },
   worker: {
     format: 'es',
   },
+  // Cross-origin isolation lets the AI runtime use multi-threaded WASM (same headers as .htaccess).
+  server: { headers: CROSS_ORIGIN_ISOLATION },
+  preview: { headers: CROSS_ORIGIN_ISOLATION },
   build: {
     rolldownOptions: {
       output: {

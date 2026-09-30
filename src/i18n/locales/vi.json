@@ -67,7 +67,8 @@
     "errors": {
       "unsupported": "Chưa hỗ trợ định dạng {{format}}",
       "decode": "Không đọc được ảnh (file hỏng hoặc trình duyệt không hỗ trợ)",
-      "encode": "Lỗi khi mã hoá ảnh"
+      "encode": "Lỗi khi mã hoá ảnh",
+      "ai": "Không chạy được AI xoá nền (cần mạng ở lần đầu để tải model)"
     },
     "resize": {
       "title": "Đổi kích thước",
@@ -156,6 +157,25 @@
       "token_date": "Ngày hôm nay",
       "token_w": "Chiều rộng",
       "token_h": "Chiều cao"
+    },
+    "removeBg": {
+      "title": "Xoá nền bằng AI",
+      "model": "Chế độ",
+      "quality": "Chất lượng cao",
+      "fast": "Nhanh",
+      "hint_quality": "Tách viền đẹp nhất (tóc, lông thú). ~3 giây mỗi ảnh. Lần đầu tải model {{size}}.",
+      "hint_fast": "Nhẹ và nhanh (~0,5 giây), hợp máy yếu — viền thô hơn. Model {{size}}, có sẵn trong app.",
+      "downloading": "Đang tải model AI: {{loaded}} / {{total}}",
+      "init": "Đang khởi động AI…",
+      "running": "Đang tách nền…",
+      "ready": "✓ {{name}} đã sẵn sàng — lưu trên máy, lần sau dùng được cả offline.",
+      "error": "Không tải được model AI. Lần đầu cần có mạng.",
+      "prefetch": "Tải trước",
+      "fellBack": "Máy không đủ bộ nhớ cho chế độ Chất lượng cao nên đã tự chuyển sang Nhanh.",
+      "noAlpha": "Định dạng này không có nền trong suốt — nền sẽ được tô bằng màu bên dưới. Muốn nền trong suốt thì chọn PNG hoặc WebP.",
+      "privacy": "Ảnh được xử lý ngay trên máy, không gửi đi đâu. Model:",
+      "catDownloading": "Đang tải não AI… chờ tui xíu nha!",
+      "catReady": "Não AI sẵn sàng rồi nè!"
     }
   },
   "qr": {

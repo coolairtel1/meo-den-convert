@@ -3,6 +3,12 @@
 <IfModule mod_mime.c>
   AddType application/wasm .wasm
   AddType application/manifest+json .webmanifest
+  AddType application/octet-stream .onnx
+</IfModule>
+
+# WASM runtimes and AI models compress well (the 14 MB AI runtime → ~3.5 MB).
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE application/wasm application/octet-stream application/javascript text/css
 </IfModule>
 
 <IfModule mod_headers.c>
@@ -11,6 +17,11 @@
   <FilesMatch "^(sw\.js|index\.html|manifest\.webmanifest)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
+
+  # Cross-origin isolation: lets on-device AI use multi-threaded WebAssembly (2–3× faster).
+  # The app loads nothing cross-origin except the AI model (fetched with CORS), so this is safe.
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Cross-Origin-Embedder-Policy "require-corp"
 
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "no-referrer"

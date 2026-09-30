@@ -1,4 +1,4 @@
-import { useId, useRef } from "react"
+import { useEffect, useId, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { SegmentedControl } from "@/components/motion/SegmentedControl"
 import { useSlidingPill } from "@/components/motion/useSlidingPill"
@@ -9,7 +9,10 @@ import { Switch } from "@/components/ui/switch"
 import type { ResizeMode } from "@/lib/codecs/resize"
 import { EXTENSION, FORMAT_LABEL, HAS_ALPHA, LOSSY, OUTPUT_FORMATS } from "@/lib/codecs/support"
 import type { OutputFormat } from "@/lib/codecs/types"
-import { kbLabel } from "@/lib/format"
+import { formatBytes, kbLabel } from "@/lib/format"
+import { prepareModel, useAiStore } from "@/lib/ai/client"
+import { BG_MODELS, type BgModelId } from "@/lib/ai/models"
+import { useCatStore } from "@/features/mascot/catStore"
 import { renderName } from "@/lib/edit/rename"
 import { WATERMARK_POSITIONS, type WatermarkPosition } from "@/lib/edit/watermark"
 import { fileToDownscaledDataUrl } from "@/lib/image"
@@ -67,6 +70,7 @@ export function SettingsPanel() {
         )}
       </div>
 
+      <RemoveBgControls />
       <ResizeControls />
       <TargetControls />
       <WatermarkControls />
@@ -506,6 +510,93 @@ function RenameControls() {
                 .join(", ")}
               {items.length > 3 ? ", …" : ""}
             </span>
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** On-device AI background removal: model choice, download progress, credits. */
+function RemoveBgControls() {
+  const { t, i18n } = useTranslation()
+  const bg = useConverterStore((s) => s.settings.removeBg)
+  const format = useConverterStore((s) => s.settings.format)
+  const setRemoveBg = useConverterStore((s) => s.setRemoveBg)
+  const busy = useConverterStore((s) => s.busy)
+  const ai = useAiStore()
+  const switchId = useId()
+  const lang = i18n.resolvedLanguage
+  const spec = BG_MODELS[bg.model]
+
+  // Tủm comments on the (one-time) model download.
+  const prevPhase = useRef(ai.phase)
+  useEffect(() => {
+    const { say } = useCatStore.getState()
+    if (ai.phase === "download" && prevPhase.current !== "download") say(t("converter.removeBg.catDownloading"))
+    if (ai.phase === "ready" && (prevPhase.current === "download" || prevPhase.current === "init")) say(t("converter.removeBg.catReady"))
+    prevPhase.current = ai.phase
+  }, [ai.phase, t])
+
+  const status = () => {
+    if (ai.phase === "download")
+      return t("converter.removeBg.downloading", { loaded: formatBytes(ai.loaded, lang), total: formatBytes(ai.total, lang) })
+    if (ai.phase === "init") return t("converter.removeBg.init")
+    if (ai.phase === "run") return t("converter.removeBg.running")
+    if (ai.phase === "ready") return t("converter.removeBg.ready", { name: BG_MODELS[ai.model ?? bg.model].name })
+    if (ai.phase === "error") return t("converter.removeBg.error")
+    return null
+  }
+
+  return (
+    <div className="space-y-2 sm:col-span-2">
+      <div className="flex items-center gap-2.5">
+        <Switch id={switchId} checked={bg.enabled} disabled={busy} onCheckedChange={(enabled) => setRemoveBg({ enabled })} />
+        <label htmlFor={switchId} className="text-sm font-semibold">
+          {t("converter.removeBg.title")}
+        </label>
+        <span className="rounded-full bg-brand/20 px-2 py-0.5 text-[10px] font-bold tracking-wide text-brand-foreground uppercase dark:text-brand">AI</span>
+      </div>
+      {bg.enabled && (
+        <div className="space-y-3 rounded-xl bg-muted/50 p-3">
+          <SegmentedControl<BgModelId>
+            label={t("converter.removeBg.model")}
+            value={bg.model}
+            disabled={busy}
+            onChange={(model) => setRemoveBg({ model })}
+            options={[
+              { value: "quality", label: t("converter.removeBg.quality") },
+              { value: "fast", label: t("converter.removeBg.fast") },
+            ]}
+            className="max-w-sm"
+          />
+          <p className="text-xs text-muted-foreground">
+            {t(`converter.removeBg.hint_${bg.model}`, { size: formatBytes(spec.bytes, lang) })}
+          </p>
+          {ai.phase === "download" && (
+            <div className="h-1.5 max-w-sm overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={Math.round((ai.loaded / (ai.total || 1)) * 100)}>
+              <div className="h-full bg-brand transition-[width] duration-200" style={{ width: `${(ai.loaded / (ai.total || 1)) * 100}%` }} />
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            {status() && (
+              <span role="status" className={cn(ai.phase === "error" ? "text-destructive" : "text-muted-foreground")}>
+                {status()}
+              </span>
+            )}
+            {(ai.phase === "idle" || ai.phase === "error" || (ai.phase === "ready" && ai.model !== bg.model)) && (
+              <Button variant="outline" size="xs" disabled={busy} onClick={() => void prepareModel(bg.model).catch(() => undefined)}>
+                {t("converter.removeBg.prefetch")}
+              </Button>
+            )}
+          </div>
+          {ai.fellBack && <p className="text-xs text-amber-700 dark:text-amber-400">{t("converter.removeBg.fellBack")}</p>}
+          {!HAS_ALPHA[format] && <p className="text-xs text-muted-foreground">{t("converter.removeBg.noAlpha")}</p>}
+          <p className="text-[11px] text-muted-foreground">
+            {t("converter.removeBg.privacy")}{" "}
+            <a href={spec.licenseUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-foreground">
+              {spec.name} · {spec.license}
+            </a>
           </p>
         </div>
       )}

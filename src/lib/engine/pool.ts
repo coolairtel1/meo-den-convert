@@ -1,6 +1,6 @@
 import * as Comlink from "comlink"
 import type { ConvertWorkerApi } from "@/workers/convert.worker"
-import type { ConvertOptions, ConvertResult, ProgressFn } from "./pipeline"
+import type { ConvertOptions, ConvertResult, ProgressFn, RawInput } from "./pipeline"
 
 type Remote = Comlink.Remote<ConvertWorkerApi>
 
@@ -35,10 +35,16 @@ function release(w: Remote) {
 }
 
 /** Queues a conversion on the shared worker pool (workers are created lazily and reused). */
-export async function convertInPool(file: Blob, options: ConvertOptions, onProgress?: ProgressFn): Promise<ConvertResult> {
+export async function convertInPool(
+  input: Blob | RawInput,
+  options: ConvertOptions,
+  onProgress?: ProgressFn,
+): Promise<ConvertResult> {
   const w = await acquire()
   try {
-    return await w.convertImage(file, options, onProgress ? Comlink.proxy(onProgress) : undefined)
+    // Raw pixels move to the worker without a copy.
+    const arg = input instanceof Blob ? input : Comlink.transfer(input, [input.data])
+    return await w.convertImage(arg, options, onProgress ? Comlink.proxy(onProgress) : undefined)
   } finally {
     release(w)
   }

@@ -68,7 +68,8 @@
     "errors": {
       "unsupported": "{{format}} isn't supported yet",
       "decode": "Couldn't read this image (corrupt or unsupported by the browser)",
-      "encode": "Failed to encode the image"
+      "encode": "Failed to encode the image",
+      "ai": "Couldn't run AI background removal (the first run needs a connection to download the model)"
     },
     "resize": {
       "title": "Resize",
@@ -162,6 +163,25 @@
       "token_date": "Today's date",
       "token_w": "Width",
       "token_h": "Height"
+    },
+    "removeBg": {
+      "title": "Remove background with AI",
+      "model": "Mode",
+      "quality": "High quality",
+      "fast": "Fast",
+      "hint_quality": "Cleanest edges (hair, fur). ~3 s per image. First use downloads a {{size}} model.",
+      "hint_fast": "Light and quick (~0.5 s), good for weaker devices — rougher edges. {{size}} model, bundled.",
+      "downloading": "Downloading the AI model: {{loaded}} / {{total}}",
+      "init": "Starting the AI…",
+      "running": "Removing background…",
+      "ready": "✓ {{name}} is ready — stored on this device, works offline next time.",
+      "error": "Couldn't load the AI model. The first run needs a connection.",
+      "prefetch": "Download now",
+      "fellBack": "Not enough memory for High quality, so Fast was used instead.",
+      "noAlpha": "This format can't be transparent — the background gets the colour below. Pick PNG or WebP for a transparent background.",
+      "privacy": "Images are processed on this device and never uploaded. Model:",
+      "catDownloading": "Downloading my AI brain… one sec!",
+      "catReady": "AI brain ready!"
     }
   },
   "qr": {
